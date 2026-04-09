@@ -1,0 +1,35 @@
+*, *::before, *::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: #000;
+  color: #ddd;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+#grid {
+  display: grid;
+  width: 100%;
+  height: 100%;
+  padding: 20px;
+  gap: 10px;
+}
+
+.grid-cell {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.grid-cell[data-position^="top"] { align-items: center; justify-content: flex-start; }
+.grid-cell[data-position^="bottom"] { align-items: center; justify-content: flex-end; }
+.grid-cell[data-position$="-left"] { align-items: flex-start; }
+.grid-cell[data-position$="-right"] { align-items: flex-end; }
+.grid-cell[data-position="middle-center"] { align-items: center; justify-content: center; }
