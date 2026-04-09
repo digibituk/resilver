@@ -88,6 +88,76 @@ func TestLoadInvalidJSONReturnsError(t *testing.T) {
 	}
 }
 
+func TestLoadTimezoneField(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "config.json")
+
+	data := []byte(`{
+		"server": {"port": 8080},
+		"layout": {"columns": 3, "rows": 3, "positions": {}},
+		"modules": {
+			"clock": {
+				"enabled": true,
+				"config": {"format": "24h", "timezone": "Europe/London"}
+			}
+		}
+	}`)
+	if err := os.WriteFile(path, data, 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	cfg, err := Load(path)
+	if err != nil {
+		t.Fatalf("Load() error: %v", err)
+	}
+
+	clock := cfg.Modules["clock"]
+	tz, ok := clock.Config["timezone"]
+	if !ok {
+		t.Fatal("timezone field not found in clock config")
+	}
+	if tz != "Europe/London" {
+		t.Errorf("timezone = %v, want Europe/London", tz)
+	}
+}
+
+func TestLoadEmptyModulesConfig(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "config.json")
+
+	data := []byte(`{
+		"server": {"port": 8080},
+		"layout": {"columns": 3, "rows": 3, "positions": {}},
+		"modules": {}
+	}`)
+	if err := os.WriteFile(path, data, 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	cfg, err := Load(path)
+	if err != nil {
+		t.Fatalf("Load() error: %v", err)
+	}
+
+	if len(cfg.Modules) != 0 {
+		t.Errorf("Modules length = %d, want 0", len(cfg.Modules))
+	}
+}
+
+func TestLoadPermissionDeniedReturnsError(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "config.json")
+
+	if err := os.WriteFile(path, []byte(`{}`), 0000); err != nil {
+		t.Fatal(err)
+	}
+
+	_, err := Load(path)
+	if err == nil {
+		t.Error("Load() expected error for unreadable file, got nil")
+	}
+}
+
 func TestDefaultConfig(t *testing.T) {
 	cfg := Default()
 

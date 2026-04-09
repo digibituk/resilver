@@ -69,15 +69,57 @@ func TestServeConfigEndpoint(t *testing.T) {
 func TestServeStaticAssets(t *testing.T) {
 	srv := New(config.Default(), testWebFS(t))
 
-	paths := []string{"/css/main.css", "/js/app.js", "/js/tailwind.js"}
+	tests := []struct {
+		path        string
+		contentType string
+	}{
+		{"/css/main.css", "text/css"},
+		{"/js/app.js", "text/javascript"},
+		{"/js/tailwind.js", "text/javascript"},
+	}
 
-	for _, path := range paths {
-		req := httptest.NewRequest(http.MethodGet, path, nil)
+	for _, tc := range tests {
+		req := httptest.NewRequest(http.MethodGet, tc.path, nil)
 		w := httptest.NewRecorder()
 		srv.Handler().ServeHTTP(w, req)
 
 		if w.Code != http.StatusOK {
-			t.Errorf("GET %s status = %d, want %d", path, w.Code, http.StatusOK)
+			t.Errorf("GET %s status = %d, want %d", tc.path, w.Code, http.StatusOK)
 		}
+		ct := w.Header().Get("Content-Type")
+		if !strings.Contains(ct, tc.contentType) {
+			t.Errorf("GET %s Content-Type = %q, want %s", tc.path, ct, tc.contentType)
+		}
+	}
+}
+
+func TestServe404ForMissingAsset(t *testing.T) {
+	srv := New(config.Default(), testWebFS(t))
+	req := httptest.NewRequest(http.MethodGet, "/nonexistent.js", nil)
+	w := httptest.NewRecorder()
+
+	srv.Handler().ServeHTTP(w, req)
+
+	if w.Code != http.StatusNotFound {
+		t.Errorf("GET /nonexistent.js status = %d, want %d", w.Code, http.StatusNotFound)
+	}
+}
+
+func TestConfigEndpointReflectsCustomConfig(t *testing.T) {
+	cfg := config.Default()
+	cfg.Server.Port = 9999
+
+	srv := New(cfg, testWebFS(t))
+	req := httptest.NewRequest(http.MethodGet, "/api/config", nil)
+	w := httptest.NewRecorder()
+
+	srv.Handler().ServeHTTP(w, req)
+
+	var got config.Config
+	if err := json.Unmarshal(w.Body.Bytes(), &got); err != nil {
+		t.Fatalf("failed to decode config response: %v", err)
+	}
+	if got.Server.Port != 9999 {
+		t.Errorf("config.Server.Port = %d, want 9999", got.Server.Port)
 	}
 }

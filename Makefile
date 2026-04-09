@@ -3,13 +3,18 @@ MODULE := github.com/digibituk/resilver
 VERSION := $(shell git describe --tags --always --dirty 2>/dev/null || echo "dev")
 LDFLAGS := -s -w -X main.version=$(VERSION)
 
-.PHONY: build test run lint clean build-pi build-pi64 build-linux
+.PHONY: build test test-e2e test-all run lint clean build-pi build-pi64 build-linux
 
 build:
 	CGO_ENABLED=0 go build -ldflags "$(LDFLAGS)" -o bin/$(BINARY) ./cmd/resilver
 
 test:
 	go test ./... -v -race
+
+test-e2e:
+	npx playwright test
+
+test-all: test test-e2e
 
 run: build
 	./bin/$(BINARY)
