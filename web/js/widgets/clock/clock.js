@@ -1,42 +1,19 @@
 class ResilverClock extends HTMLElement {
   connectedCallback() {
-    this.attachShadow({ mode: "open" });
-
     const cfg = JSON.parse(this.dataset.config || "{}");
     this._format = cfg.format || "24h";
     this._showSeconds = cfg.showSeconds !== false;
     this._showDate = cfg.showDate !== false;
+    this._timezone = cfg.timezone || undefined;
 
-    this.shadowRoot.innerHTML = `
-      <style>
-        :host {
-          display: block;
-          font-family: "SF Mono", "Fira Code", "Cascadia Code", monospace;
-          color: #ddd;
-          text-align: center;
-        }
-        .time {
-          font-size: 4rem;
-          font-weight: 300;
-          letter-spacing: 0.05em;
-        }
-        .seconds {
-          font-size: 2rem;
-          opacity: 0.6;
-        }
-        .date {
-          font-size: 1.2rem;
-          opacity: 0.5;
-          margin-top: 0.3em;
-          font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-        }
-      </style>
-      <div class="time"></div>
-      ${this._showDate ? '<div class="date"></div>' : ""}
+    this.className = "block font-mono text-gray-300 text-center";
+    this.innerHTML = `
+      <div class="resilver-clock__time text-7xl font-light tracking-wider"></div>
+      ${this._showDate ? '<div class="resilver-clock__date text-xl opacity-50 mt-1 font-sans"></div>' : ""}
     `;
 
-    this._timeEl = this.shadowRoot.querySelector(".time");
-    this._dateEl = this.shadowRoot.querySelector(".date");
+    this._timeEl = this.querySelector(".resilver-clock__time");
+    this._dateEl = this.querySelector(".resilver-clock__date");
 
     this._update();
     this._interval = setInterval(() => this._update(), 1000);
@@ -48,32 +25,31 @@ class ResilverClock extends HTMLElement {
 
   _update() {
     const now = new Date();
-    let h = now.getHours();
-    const m = String(now.getMinutes()).padStart(2, "0");
-    const s = String(now.getSeconds()).padStart(2, "0");
-
-    let suffix = "";
-    if (this._format === "12h") {
-      suffix = h >= 12 ? " PM" : " AM";
-      h = h % 12 || 12;
-    }
-
-    const hStr = String(h).padStart(2, "0");
-    let time = `${hStr}:${m}`;
+    const timeOpts = {
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: this._format === "12h",
+    };
     if (this._showSeconds) {
-      time += `<span class="seconds">:${s}</span>`;
+      timeOpts.second = "2-digit";
     }
-    time += suffix;
+    if (this._timezone) {
+      timeOpts.timeZone = this._timezone;
+    }
 
-    this._timeEl.innerHTML = time;
+    this._timeEl.textContent = now.toLocaleTimeString(undefined, timeOpts);
 
     if (this._dateEl) {
-      this._dateEl.textContent = now.toLocaleDateString(undefined, {
+      const dateOpts = {
         weekday: "long",
         year: "numeric",
         month: "long",
         day: "numeric",
-      });
+      };
+      if (this._timezone) {
+        dateOpts.timeZone = this._timezone;
+      }
+      this._dateEl.textContent = now.toLocaleDateString(undefined, dateOpts);
     }
   }
 }

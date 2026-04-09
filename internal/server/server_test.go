@@ -69,7 +69,7 @@ func TestServeConfigEndpoint(t *testing.T) {
 func TestServeStaticAssets(t *testing.T) {
 	srv := New(config.Default(), testWebFS(t))
 
-	paths := []string{"/css/main.css", "/js/app.js"}
+	paths := []string{"/css/main.css", "/js/app.js", "/js/tailwind.js"}
 
 	for _, path := range paths {
 		req := httptest.NewRequest(http.MethodGet, path, nil)

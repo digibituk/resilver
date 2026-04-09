@@ -23,7 +23,8 @@
       "config": {
         "format": "24h",
         "showSeconds": true,
-        "showDate": true
+        "showDate": true,
+        "timezone": ""
       }
     }
   }
