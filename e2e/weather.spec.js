@@ -37,13 +37,12 @@ test.describe("weather widget", () => {
     expect(text.length).toBeGreaterThan(0);
   });
 
-  test("displays feels-like and humidity details", async ({ page }) => {
+  test("displays feels-like details", async ({ page }) => {
     const details = page.locator(".resilver-weather__details");
     await expect(details).toBeVisible();
     await expect(details).not.toHaveText("", { timeout: 5000 });
     const text = await details.textContent();
     expect(text).toContain("Feels");
-    expect(text).toContain("Humidity");
   });
 
   test("displays location name", async ({ page }) => {

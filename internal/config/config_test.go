@@ -6,6 +6,43 @@ import (
 	"testing"
 )
 
+func TestDefaultConfig(t *testing.T) {
+	cfg := Default()
+
+	if cfg.Server.Port != 8080 {
+		t.Errorf("Server.Port = %d, want 8080", cfg.Server.Port)
+	}
+	if cfg.Layout.MaxWidgets != 8 {
+		t.Errorf("Layout.MaxWidgets = %d, want 8", cfg.Layout.MaxWidgets)
+	}
+	if cfg.Layout.Direction != "row" {
+		t.Errorf("Layout.Direction = %q, want row", cfg.Layout.Direction)
+	}
+	if len(cfg.Layout.Widgets) != 2 {
+		t.Fatalf("Layout.Widgets length = %d, want 2", len(cfg.Layout.Widgets))
+	}
+	if cfg.Layout.Widgets[0].Module != "clock" {
+		t.Errorf("Layout.Widgets[0].Module = %q, want clock", cfg.Layout.Widgets[0].Module)
+	}
+	if cfg.Layout.Widgets[1].Module != "weather" {
+		t.Errorf("Layout.Widgets[1].Module = %q, want weather", cfg.Layout.Widgets[1].Module)
+	}
+}
+
+func TestIsModuleActive(t *testing.T) {
+	cfg := Default()
+
+	if !cfg.IsModuleActive("clock") {
+		t.Error("IsModuleActive(clock) = false, want true")
+	}
+	if !cfg.IsModuleActive("weather") {
+		t.Error("IsModuleActive(weather) = false, want true")
+	}
+	if cfg.IsModuleActive("nonexistent") {
+		t.Error("IsModuleActive(nonexistent) = true, want false")
+	}
+}
+
 func TestLoadFromFile(t *testing.T) {
 	dir := t.TempDir()
 	path := filepath.Join(dir, "config.json")
@@ -13,18 +50,14 @@ func TestLoadFromFile(t *testing.T) {
 	data := []byte(`{
 		"server": {"port": 9090},
 		"layout": {
-			"columns": 2,
-			"rows": 2,
-			"positions": {
-				"top-left": ["clock"],
-				"top-right": [],
-				"bottom-left": [],
-				"bottom-right": []
-			}
+			"maxWidgets": 4,
+			"direction": "column",
+			"widgets": [
+				{"module": "clock"}
+			]
 		},
 		"modules": {
 			"clock": {
-				"enabled": true,
 				"config": {"format": "12h", "showSeconds": false, "showDate": true}
 			}
 		}
@@ -41,19 +74,25 @@ func TestLoadFromFile(t *testing.T) {
 	if cfg.Server.Port != 9090 {
 		t.Errorf("Server.Port = %d, want 9090", cfg.Server.Port)
 	}
-	if cfg.Layout.Columns != 2 {
-		t.Errorf("Layout.Columns = %d, want 2", cfg.Layout.Columns)
+	if cfg.Layout.MaxWidgets != 4 {
+		t.Errorf("Layout.MaxWidgets = %d, want 4", cfg.Layout.MaxWidgets)
 	}
-	if cfg.Layout.Rows != 2 {
-		t.Errorf("Layout.Rows = %d, want 2", cfg.Layout.Rows)
+	if cfg.Layout.Direction != "column" {
+		t.Errorf("Layout.Direction = %q, want column", cfg.Layout.Direction)
+	}
+	if len(cfg.Layout.Widgets) != 1 {
+		t.Fatalf("Layout.Widgets length = %d, want 1", len(cfg.Layout.Widgets))
+	}
+	if cfg.Layout.Widgets[0].Module != "clock" {
+		t.Errorf("Layout.Widgets[0].Module = %q, want clock", cfg.Layout.Widgets[0].Module)
 	}
 
 	clock, ok := cfg.Modules["clock"]
 	if !ok {
 		t.Fatal("clock module not found")
 	}
-	if !clock.Enabled {
-		t.Error("clock.Enabled = false, want true")
+	if clock.Config["format"] != "12h" {
+		t.Errorf("clock format = %v, want 12h", clock.Config["format"])
 	}
 }
 
@@ -66,11 +105,11 @@ func TestLoadMissingFileReturnsDefaults(t *testing.T) {
 	if cfg.Server.Port != 8080 {
 		t.Errorf("Server.Port = %d, want default 8080", cfg.Server.Port)
 	}
-	if cfg.Layout.Columns != 3 {
-		t.Errorf("Layout.Columns = %d, want default 3", cfg.Layout.Columns)
+	if cfg.Layout.MaxWidgets != 8 {
+		t.Errorf("Layout.MaxWidgets = %d, want default 8", cfg.Layout.MaxWidgets)
 	}
-	if cfg.Layout.Rows != 3 {
-		t.Errorf("Layout.Rows = %d, want default 3", cfg.Layout.Rows)
+	if len(cfg.Layout.Widgets) != 2 {
+		t.Errorf("Layout.Widgets length = %d, want default 2", len(cfg.Layout.Widgets))
 	}
 }
 
@@ -94,10 +133,13 @@ func TestLoadTimezoneField(t *testing.T) {
 
 	data := []byte(`{
 		"server": {"port": 8080},
-		"layout": {"columns": 3, "rows": 3, "positions": {}},
+		"layout": {
+			"maxWidgets": 8,
+			"direction": "row",
+			"widgets": [{"module": "clock"}]
+		},
 		"modules": {
 			"clock": {
-				"enabled": true,
 				"config": {"format": "24h", "timezone": "Europe/London"}
 			}
 		}
@@ -127,7 +169,11 @@ func TestLoadEmptyModulesConfig(t *testing.T) {
 
 	data := []byte(`{
 		"server": {"port": 8080},
-		"layout": {"columns": 3, "rows": 3, "positions": {}},
+		"layout": {
+			"maxWidgets": 8,
+			"direction": "row",
+			"widgets": []
+		},
 		"modules": {}
 	}`)
 	if err := os.WriteFile(path, data, 0644); err != nil {
@@ -141,6 +187,9 @@ func TestLoadEmptyModulesConfig(t *testing.T) {
 
 	if len(cfg.Modules) != 0 {
 		t.Errorf("Modules length = %d, want 0", len(cfg.Modules))
+	}
+	if len(cfg.Layout.Widgets) != 0 {
+		t.Errorf("Layout.Widgets length = %d, want 0", len(cfg.Layout.Widgets))
 	}
 }
 
@@ -158,16 +207,29 @@ func TestLoadPermissionDeniedReturnsError(t *testing.T) {
 	}
 }
 
-func TestDefaultConfig(t *testing.T) {
-	cfg := Default()
+func TestLoadWidgetsExceedMaxReturnsError(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "config.json")
 
-	if cfg.Server.Port != 8080 {
-		t.Errorf("Server.Port = %d, want 8080", cfg.Server.Port)
+	data := []byte(`{
+		"server": {"port": 8080},
+		"layout": {
+			"maxWidgets": 2,
+			"direction": "row",
+			"widgets": [
+				{"module": "a"},
+				{"module": "b"},
+				{"module": "c"}
+			]
+		},
+		"modules": {}
+	}`)
+	if err := os.WriteFile(path, data, 0644); err != nil {
+		t.Fatal(err)
 	}
-	if cfg.Layout.Columns != 3 {
-		t.Errorf("Layout.Columns = %d, want 3", cfg.Layout.Columns)
-	}
-	if len(cfg.Layout.Positions["top-center"]) != 1 || cfg.Layout.Positions["top-center"][0] != "clock" {
-		t.Errorf("Layout.Positions[top-center] = %v, want [clock]", cfg.Layout.Positions["top-center"])
+
+	_, err := Load(path)
+	if err == nil {
+		t.Error("Load() expected error when widgets exceed maxWidgets, got nil")
 	}
 }

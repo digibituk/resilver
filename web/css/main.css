@@ -1,3 +1,4 @@
 .grid-cell {
-  @apply flex flex-col justify-center items-center;
+  @apply flex flex-col justify-center items-center w-full h-full;
+  container-type: size;
 }

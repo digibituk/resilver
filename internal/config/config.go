@@ -55,7 +55,7 @@ func Default() Config {
 			"clock": {
 				Config: map[string]any{
 					"format":      "24h",
-					"showSeconds": true,
+					"showSeconds": false,
 					"showDate":    true,
 				},
 			},

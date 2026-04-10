@@ -5,13 +5,13 @@ class ResilverWeather extends HTMLElement {
     this._location = cfg.location || "";
     this._refreshInterval = (cfg.refreshIntervalSeconds || 1800) * 1000;
 
-    this.className = "block text-gray-300 text-center";
+    this.className = "flex flex-col justify-center items-center w-full h-full text-gray-300 text-center";
     this.innerHTML = `
-      ${this._location ? `<div class="resilver-weather__location text-sm opacity-50 mb-1">${this._location}</div>` : ""}
-      <div class="resilver-weather__icon text-5xl"></div>
-      <div class="resilver-weather__temp text-3xl font-light mt-1"></div>
-      <div class="resilver-weather__desc text-sm opacity-60 mt-0.5"></div>
-      <div class="resilver-weather__details text-xs opacity-40 mt-1"></div>
+      ${this._location ? `<div class="resilver-weather__location opacity-50 mb-1" style="font-size: 1.5cqmin">${this._location}</div>` : ""}
+      <div class="resilver-weather__icon" style="font-size: 10cqmin"></div>
+      <div class="resilver-weather__temp font-light mt-1" style="font-size: 7cqmin"></div>
+      <div class="resilver-weather__desc opacity-60 mt-0.5" style="font-size: 2.5cqmin"></div>
+      <div class="resilver-weather__details opacity-40 mt-1" style="font-size: 2cqmin"></div>
     `;
 
     this._iconEl = this.querySelector(".resilver-weather__icon");
@@ -48,9 +48,7 @@ class ResilverWeather extends HTMLElement {
     this._tempEl.textContent = `${Math.round(data.temperature)}${unit}`;
     this._descEl.textContent = data.description;
 
-    const feelsLike = `Feels ${Math.round(data.apparentTemperature)}${unit}`;
-    const humidity = `Humidity ${data.humidity}%`;
-    this._detailsEl.textContent = `${feelsLike} · ${humidity}`;
+    this._detailsEl.textContent = `Feels ${Math.round(data.apparentTemperature)}${unit}`;
   }
 }
 
