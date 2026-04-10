@@ -61,11 +61,12 @@ func (s *Server) handleConfig(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) handleWeather(w http.ResponseWriter, r *http.Request) {
-	wCfg, ok := s.cfg.Modules["weather"]
-	if !ok || !wCfg.Enabled {
+	if !s.cfg.IsModuleActive("weather") {
 		http.Error(w, "weather module not enabled", http.StatusNotFound)
 		return
 	}
+
+	wCfg := s.cfg.Modules["weather"]
 
 	lat, _ := wCfg.Config["latitude"].(float64)
 	lon, _ := wCfg.Config["longitude"].(float64)

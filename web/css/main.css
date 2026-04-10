@@ -1,9 +1,3 @@
 .grid-cell {
   @apply flex flex-col justify-center items-center;
 }
-
-.grid-cell[data-position^="top"] { @apply items-center justify-start; }
-.grid-cell[data-position^="bottom"] { @apply items-center justify-end; }
-.grid-cell[data-position$="-left"] { @apply items-start; }
-.grid-cell[data-position$="-right"] { @apply items-end; }
-.grid-cell[data-position="middle-center"] { @apply items-center justify-center; }

@@ -3,6 +3,7 @@ package config
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"os"
 )
 
@@ -17,37 +18,41 @@ type ServerConfig struct {
 }
 
 type LayoutConfig struct {
-	Columns   int                 `json:"columns"`
-	Rows      int                 `json:"rows"`
-	Positions map[string][]string `json:"positions"`
+	MaxWidgets int           `json:"maxWidgets"`
+	Direction  string        `json:"direction"`
+	Widgets    []WidgetEntry `json:"widgets"`
+}
+
+type WidgetEntry struct {
+	Module string `json:"module"`
 }
 
 type ModuleConfig struct {
-	Enabled bool           `json:"enabled"`
-	Config  map[string]any `json:"config"`
+	Config map[string]any `json:"config"`
+}
+
+func (c Config) IsModuleActive(name string) bool {
+	for _, w := range c.Layout.Widgets {
+		if w.Module == name {
+			return true
+		}
+	}
+	return false
 }
 
 func Default() Config {
 	return Config{
 		Server: ServerConfig{Port: 8080},
 		Layout: LayoutConfig{
-			Columns: 3,
-			Rows:    3,
-			Positions: map[string][]string{
-				"top-left":      {},
-				"top-center":    {"clock"},
-				"top-right":     {"weather"},
-				"middle-left":   {},
-				"middle-center": {},
-				"middle-right":  {},
-				"bottom-left":   {},
-				"bottom-center": {},
-				"bottom-right":  {},
+			MaxWidgets: 8,
+			Direction:  "row",
+			Widgets: []WidgetEntry{
+				{Module: "clock"},
+				{Module: "weather"},
 			},
 		},
 		Modules: map[string]ModuleConfig{
 			"clock": {
-				Enabled: true,
 				Config: map[string]any{
 					"format":      "24h",
 					"showSeconds": true,
@@ -55,7 +60,6 @@ func Default() Config {
 				},
 			},
 			"weather": {
-				Enabled: true,
 				Config: map[string]any{
 					"latitude":               51.4778356052696,
 					"longitude":              0.323272352543598,
@@ -80,6 +84,10 @@ func Load(path string) (Config, error) {
 	var cfg Config
 	if err := json.Unmarshal(data, &cfg); err != nil {
 		return Config{}, err
+	}
+
+	if len(cfg.Layout.Widgets) > cfg.Layout.MaxWidgets {
+		return Config{}, fmt.Errorf("widgets count %d exceeds maxWidgets %d", len(cfg.Layout.Widgets), cfg.Layout.MaxWidgets)
 	}
 
 	return cfg, nil

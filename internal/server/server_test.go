@@ -139,14 +139,6 @@ func TestWeatherEndpointReturnsData(t *testing.T) {
 	defer ws.Close()
 
 	cfg := config.Default()
-	cfg.Modules["weather"] = config.ModuleConfig{
-		Enabled: true,
-		Config: map[string]interface{}{
-			"latitude":  51.5074,
-			"longitude": -0.1278,
-			"units":     "celsius",
-		},
-	}
 
 	srv := NewWithWeatherURL(cfg, testWebFS(t), ws.URL)
 	req := httptest.NewRequest(http.MethodGet, "/api/weather", nil)
@@ -170,8 +162,9 @@ func TestWeatherEndpointReturnsData(t *testing.T) {
 	}
 }
 
-func TestWeatherEndpoint404WhenDisabled(t *testing.T) {
+func TestWeatherEndpoint404WhenNotInLayout(t *testing.T) {
 	cfg := config.Default()
+	cfg.Layout.Widgets = []config.WidgetEntry{{Module: "clock"}}
 	delete(cfg.Modules, "weather")
 
 	srv := New(cfg, testWebFS(t))
@@ -192,14 +185,6 @@ func TestWeatherEndpoint502OnUpstreamError(t *testing.T) {
 	defer ws.Close()
 
 	cfg := config.Default()
-	cfg.Modules["weather"] = config.ModuleConfig{
-		Enabled: true,
-		Config: map[string]interface{}{
-			"latitude":  51.5074,
-			"longitude": -0.1278,
-			"units":     "celsius",
-		},
-	}
 
 	srv := NewWithWeatherURL(cfg, testWebFS(t), ws.URL)
 	req := httptest.NewRequest(http.MethodGet, "/api/weather", nil)

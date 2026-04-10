@@ -6,44 +6,46 @@ test.describe("app bootstrapping", () => {
     await page.waitForSelector("#grid");
   });
 
-  test("grid has 9 cells for 3x3 layout", async ({ page }) => {
+  test("grid has correct number of cells for widget count", async ({
+    page,
+  }) => {
+    // Default config has 2 widgets (clock + weather) → 2 cells
     const cells = page.locator(".grid-cell");
-    await expect(cells).toHaveCount(9);
+    await expect(cells).toHaveCount(2);
   });
 
-  test("grid uses correct CSS grid template", async ({ page }) => {
+  test("grid uses auto-calculated columns and rows", async ({ page }) => {
+    // 2 widgets, direction row → 2 columns, 1 row
     const grid = page.locator("#grid");
     const columns = await grid.evaluate(
       (el) => getComputedStyle(el).gridTemplateColumns
     );
-    // 3 column values
     const colCount = columns.split(" ").length;
-    expect(colCount).toBe(3);
+    expect(colCount).toBe(2);
 
     const rows = await grid.evaluate(
       (el) => getComputedStyle(el).gridTemplateRows
     );
     const rowCount = rows.split(" ").length;
-    expect(rowCount).toBe(3);
+    expect(rowCount).toBe(1);
   });
 
-  test("each cell has correct data-position attribute", async ({ page }) => {
-    const expected = [
-      "top-left", "top-center", "top-right",
-      "middle-left", "middle-center", "middle-right",
-      "bottom-left", "bottom-center", "bottom-right",
-    ];
+  test("widgets are rendered in config order", async ({ page }) => {
+    const cells = page.locator(".grid-cell");
 
-    for (const pos of expected) {
-      const cell = page.locator(`.grid-cell[data-position="${pos}"]`);
-      await expect(cell).toHaveCount(1);
-    }
+    // First cell should contain the clock widget
+    const firstWidget = cells.nth(0).locator("resilver-clock");
+    await expect(firstWidget).toBeVisible();
+
+    // Second cell should contain the weather widget
+    const secondWidget = cells.nth(1).locator("resilver-weather");
+    await expect(secondWidget).toBeVisible();
   });
 
-  test("empty cells contain no widgets", async ({ page }) => {
-    const emptyCell = page.locator('.grid-cell[data-position="top-left"]');
-    const children = emptyCell.locator(":scope > *");
-    await expect(children).toHaveCount(0);
+  test("each cell has data-index attribute", async ({ page }) => {
+    const cells = page.locator(".grid-cell");
+    await expect(cells.nth(0)).toHaveAttribute("data-index", "0");
+    await expect(cells.nth(1)).toHaveAttribute("data-index", "1");
   });
 
   test("config endpoint is reachable from the page", async ({ page }) => {
@@ -53,18 +55,26 @@ test.describe("app bootstrapping", () => {
     });
 
     expect(config.server.port).toBe(8080);
-    expect(config.layout.columns).toBe(3);
-    expect(config.layout.rows).toBe(3);
-    expect(config.modules.clock.enabled).toBe(true);
+    expect(config.layout.maxWidgets).toBe(8);
+    expect(config.layout.direction).toBe("row");
+    expect(config.layout.widgets).toHaveLength(2);
+    expect(config.modules.clock).toBeDefined();
   });
 
   test("tailwind is loaded and functional", async ({ page }) => {
-    // The body has Tailwind class bg-black which should compute to rgb(0,0,0)
     const body = page.locator("body");
     await expect(body).toHaveCSS("background-color", "rgb(0, 0, 0)");
 
-    // The grid has Tailwind class p-5 which should compute to 20px padding
     const grid = page.locator("#grid");
     await expect(grid).toHaveCSS("padding", "20px");
+  });
+
+  test("grid uses auto-flow based on direction config", async ({ page }) => {
+    const grid = page.locator("#grid");
+    const autoFlow = await grid.evaluate(
+      (el) => getComputedStyle(el).gridAutoFlow
+    );
+    // Default direction is "row"
+    expect(autoFlow).toBe("row");
   });
 });
