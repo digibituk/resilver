@@ -23,8 +23,8 @@ type LayoutConfig struct {
 }
 
 type ModuleConfig struct {
-	Enabled bool                   `json:"enabled"`
-	Config  map[string]interface{} `json:"config"`
+	Enabled bool           `json:"enabled"`
+	Config  map[string]any `json:"config"`
 }
 
 func Default() Config {
@@ -34,24 +34,34 @@ func Default() Config {
 			Columns: 3,
 			Rows:    3,
 			Positions: map[string][]string{
-				"top-left":       {},
-				"top-center":     {"clock"},
-				"top-right":      {},
-				"middle-left":    {},
-				"middle-center":  {},
-				"middle-right":   {},
-				"bottom-left":    {},
-				"bottom-center":  {},
-				"bottom-right":   {},
+				"top-left":      {},
+				"top-center":    {"clock"},
+				"top-right":     {"weather"},
+				"middle-left":   {},
+				"middle-center": {},
+				"middle-right":  {},
+				"bottom-left":   {},
+				"bottom-center": {},
+				"bottom-right":  {},
 			},
 		},
 		Modules: map[string]ModuleConfig{
 			"clock": {
 				Enabled: true,
-				Config: map[string]interface{}{
+				Config: map[string]any{
 					"format":      "24h",
 					"showSeconds": true,
 					"showDate":    true,
+				},
+			},
+			"weather": {
+				Enabled: true,
+				Config: map[string]any{
+					"latitude":               51.4778356052696,
+					"longitude":              0.323272352543598,
+					"units":                  "celsius",
+					"location":               "Grays",
+					"refreshIntervalSeconds": 1800,
 				},
 			},
 		},

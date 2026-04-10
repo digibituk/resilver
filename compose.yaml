@@ -5,6 +5,3 @@ services:
       dockerfile: Containerfile
     ports:
       - "8080:8080"
-    volumes:
-      - ./configs:/etc/resilver:ro
-    command: ["/resilver", "--config", "/etc/resilver/default.json"]

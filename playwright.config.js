@@ -15,7 +15,7 @@ module.exports = defineConfig({
     },
   ],
   webServer: {
-    command: "go run ./cmd/resilver --config configs/default.json",
+    command: "go run ./cmd/resilver",
     port: 8080,
     reuseExistingServer: false,
     timeout: 10000,

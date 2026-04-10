@@ -12,7 +12,17 @@ import (
 	"testing"
 
 	"github.com/digibituk/resilver/internal/config"
+	"github.com/digibituk/resilver/internal/weather"
 )
+
+func fakeWeatherServer(t *testing.T) *httptest.Server {
+	t.Helper()
+	return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		resp := `{"current":{"temperature_2m":15.3,"relative_humidity_2m":72,"apparent_temperature":13.1,"weather_code":3,"wind_speed_10m":12.5}}`
+		w.Header().Set("Content-Type", "application/json")
+		w.Write([]byte(resp))
+	}))
+}
 
 func testWebFS(t *testing.T) fs.FS {
 	t.Helper()
@@ -121,5 +131,83 @@ func TestConfigEndpointReflectsCustomConfig(t *testing.T) {
 	}
 	if got.Server.Port != 9999 {
 		t.Errorf("config.Server.Port = %d, want 9999", got.Server.Port)
+	}
+}
+
+func TestWeatherEndpointReturnsData(t *testing.T) {
+	ws := fakeWeatherServer(t)
+	defer ws.Close()
+
+	cfg := config.Default()
+	cfg.Modules["weather"] = config.ModuleConfig{
+		Enabled: true,
+		Config: map[string]interface{}{
+			"latitude":  51.5074,
+			"longitude": -0.1278,
+			"units":     "celsius",
+		},
+	}
+
+	srv := NewWithWeatherURL(cfg, testWebFS(t), ws.URL)
+	req := httptest.NewRequest(http.MethodGet, "/api/weather", nil)
+	w := httptest.NewRecorder()
+
+	srv.Handler().ServeHTTP(w, req)
+
+	if w.Code != http.StatusOK {
+		t.Errorf("GET /api/weather status = %d, want %d", w.Code, http.StatusOK)
+	}
+
+	var data weather.WeatherData
+	if err := json.Unmarshal(w.Body.Bytes(), &data); err != nil {
+		t.Fatalf("failed to decode weather response: %v", err)
+	}
+	if data.Temperature != 15.3 {
+		t.Errorf("Temperature = %f, want 15.3", data.Temperature)
+	}
+	if data.Description == "" {
+		t.Error("Description should not be empty")
+	}
+}
+
+func TestWeatherEndpoint404WhenDisabled(t *testing.T) {
+	cfg := config.Default()
+	delete(cfg.Modules, "weather")
+
+	srv := New(cfg, testWebFS(t))
+	req := httptest.NewRequest(http.MethodGet, "/api/weather", nil)
+	w := httptest.NewRecorder()
+
+	srv.Handler().ServeHTTP(w, req)
+
+	if w.Code != http.StatusNotFound {
+		t.Errorf("GET /api/weather status = %d, want %d", w.Code, http.StatusNotFound)
+	}
+}
+
+func TestWeatherEndpoint502OnUpstreamError(t *testing.T) {
+	ws := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusInternalServerError)
+	}))
+	defer ws.Close()
+
+	cfg := config.Default()
+	cfg.Modules["weather"] = config.ModuleConfig{
+		Enabled: true,
+		Config: map[string]interface{}{
+			"latitude":  51.5074,
+			"longitude": -0.1278,
+			"units":     "celsius",
+		},
+	}
+
+	srv := NewWithWeatherURL(cfg, testWebFS(t), ws.URL)
+	req := httptest.NewRequest(http.MethodGet, "/api/weather", nil)
+	w := httptest.NewRecorder()
+
+	srv.Handler().ServeHTTP(w, req)
+
+	if w.Code != http.StatusBadGateway {
+		t.Errorf("GET /api/weather status = %d, want %d", w.Code, http.StatusBadGateway)
 	}
 }
