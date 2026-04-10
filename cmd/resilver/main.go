@@ -4,8 +4,6 @@ import (
 	"flag"
 	"io/fs"
 	"log"
-	"os"
-	"path/filepath"
 
 	resilver "github.com/digibituk/resilver"
 	"github.com/digibituk/resilver/internal/config"
@@ -15,7 +13,7 @@ import (
 var version = "dev"
 
 func main() {
-	configPath := flag.String("config", defaultConfigPath(), "path to config file")
+	configPath := flag.String("config", "", "path to config file (uses embedded defaults if omitted)")
 	port := flag.Int("port", 0, "override server port")
 	flag.Parse()
 
@@ -39,11 +37,4 @@ func main() {
 	if err := srv.ListenAndServe(); err != nil {
 		log.Fatalf("server error: %v", err)
 	}
-}
-
-func defaultConfigPath() string {
-	if dir, err := os.UserConfigDir(); err == nil {
-		return filepath.Join(dir, "resilver", "config.json")
-	}
-	return "config.json"
 }

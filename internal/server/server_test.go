@@ -24,6 +24,15 @@ func fakeWeatherServer(t *testing.T) *httptest.Server {
 	}))
 }
 
+func loadTestConfig(t *testing.T) config.Config {
+	t.Helper()
+	cfg, err := config.Load("")
+	if err != nil {
+		t.Fatalf("failed to load default config: %v", err)
+	}
+	return cfg
+}
+
 func testWebFS(t *testing.T) fs.FS {
 	t.Helper()
 	_, file, _, _ := runtime.Caller(0)
@@ -35,7 +44,7 @@ func testWebFS(t *testing.T) fs.FS {
 }
 
 func TestServeIndex(t *testing.T) {
-	srv := New(config.Default(), testWebFS(t))
+	srv := New(loadTestConfig(t), testWebFS(t))
 	req := httptest.NewRequest(http.MethodGet, "/", nil)
 	w := httptest.NewRecorder()
 
@@ -53,7 +62,7 @@ func TestServeIndex(t *testing.T) {
 }
 
 func TestServeConfigEndpoint(t *testing.T) {
-	cfg := config.Default()
+	cfg := loadTestConfig(t)
 	srv := New(cfg, testWebFS(t))
 	req := httptest.NewRequest(http.MethodGet, "/api/config", nil)
 	w := httptest.NewRecorder()
@@ -77,7 +86,7 @@ func TestServeConfigEndpoint(t *testing.T) {
 }
 
 func TestServeStaticAssets(t *testing.T) {
-	srv := New(config.Default(), testWebFS(t))
+	srv := New(loadTestConfig(t), testWebFS(t))
 
 	tests := []struct {
 		path        string
@@ -104,7 +113,7 @@ func TestServeStaticAssets(t *testing.T) {
 }
 
 func TestServe404ForMissingAsset(t *testing.T) {
-	srv := New(config.Default(), testWebFS(t))
+	srv := New(loadTestConfig(t), testWebFS(t))
 	req := httptest.NewRequest(http.MethodGet, "/nonexistent.js", nil)
 	w := httptest.NewRecorder()
 
@@ -116,7 +125,7 @@ func TestServe404ForMissingAsset(t *testing.T) {
 }
 
 func TestConfigEndpointReflectsCustomConfig(t *testing.T) {
-	cfg := config.Default()
+	cfg := loadTestConfig(t)
 	cfg.Server.Port = 9999
 
 	srv := New(cfg, testWebFS(t))
@@ -138,7 +147,7 @@ func TestWeatherEndpointReturnsData(t *testing.T) {
 	ws := fakeWeatherServer(t)
 	defer ws.Close()
 
-	cfg := config.Default()
+	cfg := loadTestConfig(t)
 
 	srv := NewWithWeatherURL(cfg, testWebFS(t), ws.URL)
 	req := httptest.NewRequest(http.MethodGet, "/api/weather", nil)
@@ -163,7 +172,7 @@ func TestWeatherEndpointReturnsData(t *testing.T) {
 }
 
 func TestWeatherEndpoint404WhenNotInLayout(t *testing.T) {
-	cfg := config.Default()
+	cfg := loadTestConfig(t)
 	cfg.Layout.Widgets = []config.WidgetEntry{{Module: "clock"}}
 	delete(cfg.Modules, "weather")
 
@@ -184,7 +193,7 @@ func TestWeatherEndpoint502OnUpstreamError(t *testing.T) {
 	}))
 	defer ws.Close()
 
-	cfg := config.Default()
+	cfg := loadTestConfig(t)
 
 	srv := NewWithWeatherURL(cfg, testWebFS(t), ws.URL)
 	req := httptest.NewRequest(http.MethodGet, "/api/weather", nil)

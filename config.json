@@ -1,0 +1,31 @@
+{
+  "server": {
+    "port": 8080
+  },
+  "layout": {
+    "maxWidgets": 8,
+    "direction": "row",
+    "widgets": [
+      { "module": "clock" },
+      { "module": "weather" }
+    ]
+  },
+  "modules": {
+    "clock": {
+      "config": {
+        "format": "24h",
+        "showSeconds": false,
+        "showDate": true
+      }
+    },
+    "weather": {
+      "config": {
+        "latitude": 51.4778356052696,
+        "longitude": 0.323272352543598,
+        "units": "celsius",
+        "location": "Grays",
+        "refreshIntervalSeconds": 1800
+      }
+    }
+  }
+}

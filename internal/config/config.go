@@ -5,6 +5,8 @@ import (
 	"errors"
 	"fmt"
 	"os"
+
+	resilver "github.com/digibituk/resilver"
 )
 
 type Config struct {
@@ -40,45 +42,24 @@ func (c Config) IsModuleActive(name string) bool {
 	return false
 }
 
-func Default() Config {
-	return Config{
-		Server: ServerConfig{Port: 8080},
-		Layout: LayoutConfig{
-			MaxWidgets: 8,
-			Direction:  "row",
-			Widgets: []WidgetEntry{
-				{Module: "clock"},
-				{Module: "weather"},
-			},
-		},
-		Modules: map[string]ModuleConfig{
-			"clock": {
-				Config: map[string]any{
-					"format":      "24h",
-					"showSeconds": false,
-					"showDate":    true,
-				},
-			},
-			"weather": {
-				Config: map[string]any{
-					"latitude":               51.4778356052696,
-					"longitude":              0.323272352543598,
-					"units":                  "celsius",
-					"location":               "Grays",
-					"refreshIntervalSeconds": 1800,
-				},
-			},
-		},
-	}
-}
-
+// Load reads config from the given path. If path is empty or the file does
+// not exist, it falls back to the embedded default config.json.
 func Load(path string) (Config, error) {
-	data, err := os.ReadFile(path)
-	if err != nil {
-		if errors.Is(err, os.ErrNotExist) {
-			return Default(), nil
+	var data []byte
+
+	if path != "" {
+		raw, err := os.ReadFile(path)
+		if err != nil {
+			if errors.Is(err, os.ErrNotExist) {
+				data = resilver.DefaultConfig
+			} else {
+				return Config{}, err
+			}
+		} else {
+			data = raw
 		}
-		return Config{}, err
+	} else {
+		data = resilver.DefaultConfig
 	}
 
 	var cfg Config

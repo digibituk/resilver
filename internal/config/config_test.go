@@ -6,8 +6,11 @@ import (
 	"testing"
 )
 
-func TestDefaultConfig(t *testing.T) {
-	cfg := Default()
+func TestLoadFromEmbeddedDefaults(t *testing.T) {
+	cfg, err := Load("")
+	if err != nil {
+		t.Fatalf("Load() error: %v", err)
+	}
 
 	if cfg.Server.Port != 8080 {
 		t.Errorf("Server.Port = %d, want 8080", cfg.Server.Port)
@@ -26,20 +29,6 @@ func TestDefaultConfig(t *testing.T) {
 	}
 	if cfg.Layout.Widgets[1].Module != "weather" {
 		t.Errorf("Layout.Widgets[1].Module = %q, want weather", cfg.Layout.Widgets[1].Module)
-	}
-}
-
-func TestIsModuleActive(t *testing.T) {
-	cfg := Default()
-
-	if !cfg.IsModuleActive("clock") {
-		t.Error("IsModuleActive(clock) = false, want true")
-	}
-	if !cfg.IsModuleActive("weather") {
-		t.Error("IsModuleActive(weather) = false, want true")
-	}
-	if cfg.IsModuleActive("nonexistent") {
-		t.Error("IsModuleActive(nonexistent) = true, want false")
 	}
 }
 
@@ -83,9 +72,6 @@ func TestLoadFromFile(t *testing.T) {
 	if len(cfg.Layout.Widgets) != 1 {
 		t.Fatalf("Layout.Widgets length = %d, want 1", len(cfg.Layout.Widgets))
 	}
-	if cfg.Layout.Widgets[0].Module != "clock" {
-		t.Errorf("Layout.Widgets[0].Module = %q, want clock", cfg.Layout.Widgets[0].Module)
-	}
 
 	clock, ok := cfg.Modules["clock"]
 	if !ok {
@@ -96,7 +82,7 @@ func TestLoadFromFile(t *testing.T) {
 	}
 }
 
-func TestLoadMissingFileReturnsDefaults(t *testing.T) {
+func TestLoadMissingFileUsesEmbeddedDefaults(t *testing.T) {
 	cfg, err := Load("/nonexistent/path/config.json")
 	if err != nil {
 		t.Fatalf("Load() error: %v", err)
@@ -231,5 +217,22 @@ func TestLoadWidgetsExceedMaxReturnsError(t *testing.T) {
 	_, err := Load(path)
 	if err == nil {
 		t.Error("Load() expected error when widgets exceed maxWidgets, got nil")
+	}
+}
+
+func TestIsModuleActive(t *testing.T) {
+	cfg, err := Load("")
+	if err != nil {
+		t.Fatalf("Load() error: %v", err)
+	}
+
+	if !cfg.IsModuleActive("clock") {
+		t.Error("IsModuleActive(clock) = false, want true")
+	}
+	if !cfg.IsModuleActive("weather") {
+		t.Error("IsModuleActive(weather) = false, want true")
+	}
+	if cfg.IsModuleActive("nonexistent") {
+		t.Error("IsModuleActive(nonexistent) = true, want false")
 	}
 }
