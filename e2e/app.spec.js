@@ -9,13 +9,13 @@ test.describe("app bootstrapping", () => {
   test("grid has correct number of cells for widget count", async ({
     page,
   }) => {
-    // Default config has 2 widgets (clock + weather) → 2 cells
+    // Default config has 3 widgets (clock + weather + news) → 3 cells
     const cells = page.locator(".grid-cell");
-    await expect(cells).toHaveCount(2);
+    await expect(cells).toHaveCount(3);
   });
 
   test("grid uses auto-calculated columns and rows", async ({ page }) => {
-    // 2 widgets, direction row → 2 columns, 1 row
+    // 3 widgets, direction row → 2 columns, 2 rows
     const grid = page.locator("#grid");
     const columns = await grid.evaluate(
       (el) => getComputedStyle(el).gridTemplateColumns
@@ -27,25 +27,35 @@ test.describe("app bootstrapping", () => {
       (el) => getComputedStyle(el).gridTemplateRows
     );
     const rowCount = rows.split(" ").length;
-    expect(rowCount).toBe(1);
+    expect(rowCount).toBe(2);
   });
 
   test("widgets are rendered in config order", async ({ page }) => {
     const cells = page.locator(".grid-cell");
 
-    // First cell should contain the clock widget
     const firstWidget = cells.nth(0).locator("resilver-clock");
     await expect(firstWidget).toBeVisible();
 
-    // Second cell should contain the weather widget
     const secondWidget = cells.nth(1).locator("resilver-weather");
     await expect(secondWidget).toBeVisible();
+
+    const thirdWidget = cells.nth(2).locator("resilver-news");
+    await expect(thirdWidget).toBeVisible();
   });
 
   test("each cell has data-index attribute", async ({ page }) => {
     const cells = page.locator(".grid-cell");
     await expect(cells.nth(0)).toHaveAttribute("data-index", "0");
     await expect(cells.nth(1)).toHaveAttribute("data-index", "1");
+    await expect(cells.nth(2)).toHaveAttribute("data-index", "2");
+  });
+
+  test("last widget in odd count spans remainder", async ({ page }) => {
+    const lastCell = page.locator('.grid-cell[data-index="2"]');
+    const gridColumn = await lastCell.evaluate(
+      (el) => el.style.gridColumn
+    );
+    expect(gridColumn).toBe("span 2");
   });
 
   test("config endpoint is reachable from the page", async ({ page }) => {
@@ -57,8 +67,9 @@ test.describe("app bootstrapping", () => {
     expect(config.server.port).toBe(8080);
     expect(config.layout.maxWidgets).toBe(8);
     expect(config.layout.direction).toBe("row");
-    expect(config.layout.widgets).toHaveLength(2);
+    expect(config.layout.widgets).toHaveLength(3);
     expect(config.modules.clock).toBeDefined();
+    expect(config.modules.news).toBeDefined();
   });
 
   test("tailwind is loaded and functional", async ({ page }) => {

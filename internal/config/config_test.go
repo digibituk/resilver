@@ -21,14 +21,17 @@ func TestLoadFromEmbeddedDefaults(t *testing.T) {
 	if cfg.Layout.Direction != "row" {
 		t.Errorf("Layout.Direction = %q, want row", cfg.Layout.Direction)
 	}
-	if len(cfg.Layout.Widgets) != 2 {
-		t.Fatalf("Layout.Widgets length = %d, want 2", len(cfg.Layout.Widgets))
+	if len(cfg.Layout.Widgets) != 3 {
+		t.Fatalf("Layout.Widgets length = %d, want 3", len(cfg.Layout.Widgets))
 	}
 	if cfg.Layout.Widgets[0].Module != "clock" {
 		t.Errorf("Layout.Widgets[0].Module = %q, want clock", cfg.Layout.Widgets[0].Module)
 	}
 	if cfg.Layout.Widgets[1].Module != "weather" {
 		t.Errorf("Layout.Widgets[1].Module = %q, want weather", cfg.Layout.Widgets[1].Module)
+	}
+	if cfg.Layout.Widgets[2].Module != "news" {
+		t.Errorf("Layout.Widgets[2].Module = %q, want news", cfg.Layout.Widgets[2].Module)
 	}
 }
 
@@ -94,8 +97,8 @@ func TestLoadMissingFileUsesEmbeddedDefaults(t *testing.T) {
 	if cfg.Layout.MaxWidgets != 8 {
 		t.Errorf("Layout.MaxWidgets = %d, want default 8", cfg.Layout.MaxWidgets)
 	}
-	if len(cfg.Layout.Widgets) != 2 {
-		t.Errorf("Layout.Widgets length = %d, want default 2", len(cfg.Layout.Widgets))
+	if len(cfg.Layout.Widgets) != 3 {
+		t.Errorf("Layout.Widgets length = %d, want default 3", len(cfg.Layout.Widgets))
 	}
 }
 

@@ -12,8 +12,26 @@ import (
 	"testing"
 
 	"github.com/digibituk/resilver/internal/config"
+	"github.com/digibituk/resilver/internal/news"
 	"github.com/digibituk/resilver/internal/weather"
 )
+
+const testRSS = `<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0">
+  <channel>
+    <title>BBC News</title>
+    <item><title>Breaking news headline</title><link>https://example.com/1</link></item>
+    <item><title>Second story</title><link>https://example.com/2</link></item>
+  </channel>
+</rss>`
+
+func fakeNewsServer(t *testing.T) *httptest.Server {
+	t.Helper()
+	return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/xml")
+		w.Write([]byte(testRSS))
+	}))
+}
 
 func fakeWeatherServer(t *testing.T) *httptest.Server {
 	t.Helper()
@@ -203,5 +221,84 @@ func TestWeatherEndpoint502OnUpstreamError(t *testing.T) {
 
 	if w.Code != http.StatusBadGateway {
 		t.Errorf("GET /api/weather status = %d, want %d", w.Code, http.StatusBadGateway)
+	}
+}
+
+func TestNewsEndpointReturnsData(t *testing.T) {
+	ns := fakeNewsServer(t)
+	defer ns.Close()
+
+	cfg := loadTestConfig(t)
+	cfg.Layout.Widgets = append(cfg.Layout.Widgets, config.WidgetEntry{Module: "news"})
+	cfg.Modules["news"] = config.ModuleConfig{
+		Config: map[string]any{
+			"feedUrl":                ns.URL,
+			"maxItems":              float64(5),
+			"refreshIntervalSeconds": float64(1800),
+		},
+	}
+
+	srv := New(cfg, testWebFS(t))
+	req := httptest.NewRequest(http.MethodGet, "/api/news", nil)
+	w := httptest.NewRecorder()
+
+	srv.Handler().ServeHTTP(w, req)
+
+	if w.Code != http.StatusOK {
+		t.Errorf("GET /api/news status = %d, want %d", w.Code, http.StatusOK)
+	}
+
+	var items []news.NewsItem
+	if err := json.Unmarshal(w.Body.Bytes(), &items); err != nil {
+		t.Fatalf("failed to decode news response: %v", err)
+	}
+	if len(items) != 2 {
+		t.Fatalf("got %d items, want 2", len(items))
+	}
+	if items[0].Title != "Breaking news headline" {
+		t.Errorf("items[0].Title = %q, want Breaking news headline", items[0].Title)
+	}
+}
+
+func TestNewsEndpoint404WhenNotInLayout(t *testing.T) {
+	cfg := loadTestConfig(t)
+	cfg.Layout.Widgets = []config.WidgetEntry{{Module: "clock"}, {Module: "weather"}}
+	delete(cfg.Modules, "news")
+
+	srv := New(cfg, testWebFS(t))
+	req := httptest.NewRequest(http.MethodGet, "/api/news", nil)
+	w := httptest.NewRecorder()
+
+	srv.Handler().ServeHTTP(w, req)
+
+	if w.Code != http.StatusNotFound {
+		t.Errorf("GET /api/news status = %d, want %d", w.Code, http.StatusNotFound)
+	}
+}
+
+func TestNewsEndpoint502OnUpstreamError(t *testing.T) {
+	ns := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusInternalServerError)
+	}))
+	defer ns.Close()
+
+	cfg := loadTestConfig(t)
+	cfg.Layout.Widgets = append(cfg.Layout.Widgets, config.WidgetEntry{Module: "news"})
+	cfg.Modules["news"] = config.ModuleConfig{
+		Config: map[string]any{
+			"feedUrl":                ns.URL,
+			"maxItems":              float64(5),
+			"refreshIntervalSeconds": float64(1800),
+		},
+	}
+
+	srv := New(cfg, testWebFS(t))
+	req := httptest.NewRequest(http.MethodGet, "/api/news", nil)
+	w := httptest.NewRecorder()
+
+	srv.Handler().ServeHTTP(w, req)
+
+	if w.Code != http.StatusBadGateway {
+		t.Errorf("GET /api/news status = %d, want %d", w.Code, http.StatusBadGateway)
 	}
 }

@@ -7,7 +7,8 @@
     "direction": "row",
     "widgets": [
       { "module": "clock" },
-      { "module": "weather" }
+      { "module": "weather" },
+      { "module": "news" }
     ]
   },
   "modules": {
@@ -25,6 +26,14 @@
         "units": "celsius",
         "location": "Grays",
         "refreshIntervalSeconds": 1800
+      }
+    },
+    "news": {
+      "config": {
+        "feedUrl": "https://feeds.bbci.co.uk/news/rss.xml",
+        "maxItems": 5,
+        "refreshIntervalSeconds": 1800,
+        "cycleIntervalSeconds": 10
       }
     }
   }
