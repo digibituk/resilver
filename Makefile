@@ -3,7 +3,7 @@ MODULE := github.com/digibituk/resilver
 VERSION := $(shell git describe --tags --always --dirty 2>/dev/null || echo "dev")
 LDFLAGS := -s -w -X main.version=$(VERSION)
 
-.PHONY: build test test-e2e test-all run lint clean build-pi build-pi64 build-linux
+.PHONY: build test test-e2e test-all run lint clean build-pi build-pi64 build-linux container container-run
 
 build:
 	CGO_ENABLED=0 go build -ldflags "$(LDFLAGS)" -o bin/$(BINARY) ./cmd/resilver
@@ -30,6 +30,12 @@ build-pi64:
 
 build-linux:
 	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags "$(LDFLAGS)" -o bin/$(BINARY)-linux-amd64 ./cmd/resilver
+
+container:
+	podman build -f Containerfile -t resilver .
+
+container-run: container
+	podman run --rm -p 8080:8080 -v ./config.json:/config.json:ro resilver
 
 clean:
 	rm -rf bin/
