@@ -232,7 +232,7 @@ func TestNewsEndpointReturnsData(t *testing.T) {
 	cfg.Layout.Widgets = append(cfg.Layout.Widgets, config.WidgetEntry{Module: "news"})
 	cfg.Modules["news"] = config.ModuleConfig{
 		Config: map[string]any{
-			"feedUrl":                ns.URL,
+			"feedUrls":              []any{ns.URL},
 			"maxItems":              float64(5),
 			"refreshIntervalSeconds": float64(1800),
 		},
@@ -257,6 +257,9 @@ func TestNewsEndpointReturnsData(t *testing.T) {
 	}
 	if items[0].Title != "Breaking news headline" {
 		t.Errorf("items[0].Title = %q, want Breaking news headline", items[0].Title)
+	}
+	if items[0].Source != "BBC News" {
+		t.Errorf("items[0].Source = %q, want BBC News", items[0].Source)
 	}
 }
 
@@ -286,7 +289,7 @@ func TestNewsEndpoint502OnUpstreamError(t *testing.T) {
 	cfg.Layout.Widgets = append(cfg.Layout.Widgets, config.WidgetEntry{Module: "news"})
 	cfg.Modules["news"] = config.ModuleConfig{
 		Config: map[string]any{
-			"feedUrl":                ns.URL,
+			"feedUrls":              []any{ns.URL},
 			"maxItems":              float64(5),
 			"refreshIntervalSeconds": float64(1800),
 		},

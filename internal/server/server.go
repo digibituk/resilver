@@ -107,13 +107,21 @@ func (s *Server) handleNews(w http.ResponseWriter, r *http.Request) {
 
 	nCfg := s.cfg.Modules["news"]
 
-	feedURL, _ := nCfg.Config["feedUrl"].(string)
+	var feedURLs []string
+	if urls, ok := nCfg.Config["feedUrls"].([]any); ok {
+		for _, u := range urls {
+			if s, ok := u.(string); ok {
+				feedURLs = append(feedURLs, s)
+			}
+		}
+	}
+
 	maxItems := 5
 	if v, ok := nCfg.Config["maxItems"].(float64); ok {
 		maxItems = int(v)
 	}
 
-	items, err := s.newsClient.Fetch(feedURL, maxItems)
+	items, err := s.newsClient.Fetch(feedURLs, maxItems)
 	if err != nil {
 		log.Printf("news fetch error: %v", err)
 		http.Error(w, "failed to fetch news data", http.StatusBadGateway)

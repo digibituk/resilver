@@ -30,9 +30,13 @@
     },
     "news": {
       "config": {
-        "feedUrl": "https://feeds.bbci.co.uk/news/rss.xml",
-        "maxItems": 5,
-        "refreshIntervalSeconds": 1800,
+        "feedUrls": [
+          "https://feeds.bbci.co.uk/news/rss.xml",
+          "https://feeds.skynews.com/feeds/rss/uk.xml",
+          "https://www.theguardian.com/uk/rss"
+        ],
+        "maxItems": 20,
+        "refreshIntervalSeconds": 300,
         "cycleIntervalSeconds": 10
       }
     }

@@ -19,10 +19,18 @@ test.describe("news widget", () => {
     expect(text.length).toBeGreaterThan(0);
   });
 
-  test("headline has fade transition style", async ({ page }) => {
-    const headline = page.locator(".resilver-news__headline");
-    await expect(headline).toBeVisible();
-    const transition = await headline.evaluate(
+  test("displays source name", async ({ page }) => {
+    const source = page.locator(".resilver-news__source");
+    await expect(source).toBeVisible();
+    await expect(source).not.toHaveText("", { timeout: 5000 });
+    const text = await source.textContent();
+    expect(text.length).toBeGreaterThan(0);
+  });
+
+  test("content has fade transition style", async ({ page }) => {
+    const content = page.locator(".resilver-news__content");
+    await expect(content).toBeVisible();
+    const transition = await content.evaluate(
       (el) => getComputedStyle(el).transition
     );
     expect(transition).toContain("opacity");
