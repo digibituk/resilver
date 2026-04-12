@@ -13,6 +13,12 @@ type Config struct {
 	Server  ServerConfig            `json:"server"`
 	Layout  LayoutConfig            `json:"layout"`
 	Modules map[string]ModuleConfig `json:"modules"`
+	Update  UpdateConfig            `json:"update"`
+}
+
+type UpdateConfig struct {
+	Enabled       bool `json:"enabled"`
+	IntervalHours int  `json:"intervalHours"`
 }
 
 type ServerConfig struct {

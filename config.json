@@ -40,5 +40,9 @@
         "cycleIntervalSeconds": 10
       }
     }
+  },
+  "update": {
+    "enabled": false,
+    "intervalHours": 24
   }
 }
