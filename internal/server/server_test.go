@@ -232,8 +232,8 @@ func TestNewsEndpointReturnsData(t *testing.T) {
 	cfg.Layout.Widgets = append(cfg.Layout.Widgets, config.WidgetEntry{Module: "news"})
 	cfg.Modules["news"] = config.ModuleConfig{
 		Config: map[string]any{
-			"feedUrls":              []any{ns.URL},
-			"maxItems":              float64(5),
+			"feedUrls":               []any{ns.URL},
+			"maxItems":               float64(5),
 			"refreshIntervalSeconds": float64(1800),
 		},
 	}
@@ -289,8 +289,8 @@ func TestNewsEndpoint502OnUpstreamError(t *testing.T) {
 	cfg.Layout.Widgets = append(cfg.Layout.Widgets, config.WidgetEntry{Module: "news"})
 	cfg.Modules["news"] = config.ModuleConfig{
 		Config: map[string]any{
-			"feedUrls":              []any{ns.URL},
-			"maxItems":              float64(5),
+			"feedUrls":               []any{ns.URL},
+			"maxItems":               float64(5),
 			"refreshIntervalSeconds": float64(1800),
 		},
 	}

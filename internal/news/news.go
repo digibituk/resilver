@@ -7,6 +7,8 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"slices"
+	"strings"
 	"sync"
 	"time"
 )
@@ -122,7 +124,7 @@ func extractImage(item rssFeedItem) string {
 		return item.MediaThumb.URL
 	}
 	if item.Enclosure != nil && item.Enclosure.URL != "" {
-		if len(item.Enclosure.Type) >= 5 && item.Enclosure.Type[:5] == "image" {
+		if strings.HasPrefix(item.Enclosure.Type, "image") {
 			return item.Enclosure.URL
 		}
 	}
@@ -133,13 +135,10 @@ func extractImage(item rssFeedItem) string {
 // distributed: [A1, B1, A2, B2, A3, ...].
 func interleave(feeds [][]NewsItem) []NewsItem {
 	var result []NewsItem
-	maxLen := 0
-	for _, f := range feeds {
-		if len(f) > maxLen {
-			maxLen = len(f)
-		}
-	}
-	for i := 0; i < maxLen; i++ {
+	maxLen := slices.MaxFunc(feeds, func(a, b []NewsItem) int {
+		return len(a) - len(b)
+	})
+	for i := range len(maxLen) {
 		for _, f := range feeds {
 			if i < len(f) {
 				result = append(result, f[i])

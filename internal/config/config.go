@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"slices"
 
 	resilver "github.com/digibituk/resilver"
 )
@@ -40,12 +41,9 @@ type ModuleConfig struct {
 }
 
 func (c Config) IsModuleActive(name string) bool {
-	for _, w := range c.Layout.Widgets {
-		if w.Module == name {
-			return true
-		}
-	}
-	return false
+	return slices.ContainsFunc(c.Layout.Widgets, func(w WidgetEntry) bool {
+		return w.Module == name
+	})
 }
 
 // Load reads config from the given path. If path is empty or the file does

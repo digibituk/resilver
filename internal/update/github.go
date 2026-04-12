@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"slices"
 	"strings"
 )
 
@@ -53,12 +54,13 @@ func (c *Client) LatestRelease() (Release, error) {
 // AssetURL returns the download URL for the binary matching the given OS and architecture.
 func (r Release) AssetURL(goos, goarch string) (string, error) {
 	name := fmt.Sprintf("resilver-%s-%s", goos, goarch)
-	for _, a := range r.Assets {
-		if a.Name == name {
-			return a.BrowserDownloadURL, nil
-		}
+	idx := slices.IndexFunc(r.Assets, func(a Asset) bool {
+		return a.Name == name
+	})
+	if idx == -1 {
+		return "", fmt.Errorf("no asset found for %s/%s", goos, goarch)
 	}
-	return "", fmt.Errorf("no asset found for %s/%s", goos, goarch)
+	return r.Assets[idx].BrowserDownloadURL, nil
 }
 
 // MaxDownloadSize is the maximum allowed binary size (16 MB).
@@ -81,12 +83,13 @@ func (c *Client) Download(url string) ([]byte, error) {
 
 // ChecksumURL returns the download URL for the checksums file.
 func (r Release) ChecksumURL() (string, error) {
-	for _, a := range r.Assets {
-		if a.Name == "checksums.txt" {
-			return a.BrowserDownloadURL, nil
-		}
+	idx := slices.IndexFunc(r.Assets, func(a Asset) bool {
+		return a.Name == "checksums.txt"
+	})
+	if idx == -1 {
+		return "", fmt.Errorf("no checksums.txt asset found")
 	}
-	return "", fmt.Errorf("no checksums.txt asset found")
+	return r.Assets[idx].BrowserDownloadURL, nil
 }
 
 // VerifyChecksum checks that the SHA-256 hash of data matches the expected
