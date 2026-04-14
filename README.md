@@ -93,7 +93,7 @@ Resilver works out of the box with sensible defaults. To customise, copy `config
 | `server`  | Port the dashboard is served on                                                                                                                                           |
 | `layout`  | Configure grid layout order, direction (`row`/`column`), and max widget count. Widgets render in array order; last widget in an odd count auto-spans the remaining space. |
 | `modules` | Per-widget settings. Each widget can be configured individually.                                                                                                          |
-| `update`  | Opt-in self-update.                                                                                                                                                       |
+| `update`  | Self-update configuration. On by default.                                                                                                                                 |
 
 ## Contributing
 
