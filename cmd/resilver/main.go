@@ -40,11 +40,6 @@ func main() {
 		cfg.Server.Port = *port
 	}
 
-	if binPath, err := os.Executable(); err == nil {
-		log.Printf("auto-update: cleaning up backup if present")
-		update.CleanupBackup(binPath)
-	}
-
 	if cfg.Update.Enabled {
 		if _, err := update.ParseVersion(version); err != nil {
 			log.Printf("auto-update disabled: version %q is not a valid semver (build with ldflags to set version)", version)
@@ -69,6 +64,11 @@ func main() {
 			defer close(stop)
 			go updater.Run(time.Duration(cfg.Update.IntervalHours)*time.Hour, stop)
 		}
+	}
+
+	if binPath, err := os.Executable(); err == nil {
+		log.Printf("auto-update: cleaning up backup if present")
+		update.CleanupBackup(binPath)
 	}
 
 	webRoot, err := fs.Sub(resilver.WebFS, "web")
