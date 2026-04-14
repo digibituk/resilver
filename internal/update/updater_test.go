@@ -228,6 +228,31 @@ func TestCheckAndUpdateChecksumMismatch(t *testing.T) {
 	}
 }
 
+func TestCleanupBackup(t *testing.T) {
+	dir := t.TempDir()
+	binPath := filepath.Join(dir, "resilver")
+
+	// Create a .bak file
+	bakPath := binPath + ".bak"
+	if err := os.WriteFile(bakPath, []byte("old"), 0o755); err != nil {
+		t.Fatal(err)
+	}
+
+	CleanupBackup(binPath)
+
+	if _, err := os.Stat(bakPath); !os.IsNotExist(err) {
+		t.Fatal(".bak file should be removed after cleanup")
+	}
+}
+
+func TestCleanupBackupNoFile(t *testing.T) {
+	dir := t.TempDir()
+	binPath := filepath.Join(dir, "resilver")
+
+	// Should not panic or error when no .bak exists
+	CleanupBackup(binPath)
+}
+
 func TestReplaceBinary(t *testing.T) {
 	dir := t.TempDir()
 	binPath := filepath.Join(dir, "resilver")

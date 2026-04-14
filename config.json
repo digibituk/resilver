@@ -42,7 +42,7 @@
     }
   },
   "update": {
-    "enabled": false,
+    "enabled": true,
     "intervalHours": 24
   }
 }

@@ -8,6 +8,9 @@ LDFLAGS := -s -w -X main.version=$(VERSION)
 build:
 	CGO_ENABLED=0 go build -ldflags "$(LDFLAGS)" -o bin/$(BINARY) ./cmd/resilver
 
+test-build:
+	CGO_ENABLED=0 go build -ldflags "-X main.version=v0.0.0" -o bin/$(BINARY) ./cmd/resilver
+
 test:
 	go test ./... -v -race
 

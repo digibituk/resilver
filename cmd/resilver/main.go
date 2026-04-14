@@ -6,6 +6,7 @@ import (
 	"io/fs"
 	"log"
 	"net/http"
+	"os"
 	"runtime"
 	"time"
 
@@ -37,6 +38,11 @@ func main() {
 
 	if *port != 0 {
 		cfg.Server.Port = *port
+	}
+
+	if binPath, err := os.Executable(); err == nil {
+		log.Printf("auto-update: cleaning up backup if present")
+		update.CleanupBackup(binPath)
 	}
 
 	if cfg.Update.Enabled {

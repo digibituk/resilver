@@ -107,6 +107,11 @@ func (u *Updater) check() {
 	}
 }
 
+// CleanupBackup removes the .bak file left by a previous update.
+func CleanupBackup(binPath string) {
+	os.Remove(binPath + ".bak")
+}
+
 // ReplaceBinary atomically replaces the binary at binPath with newBinary.
 // Keeps a backup at binPath+".bak" for rollback.
 func ReplaceBinary(binPath string, newBinary []byte) error {
