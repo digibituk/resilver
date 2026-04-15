@@ -9,11 +9,11 @@ class ResilverNews extends HTMLElement {
     this.className =
       "flex justify-center items-center w-full h-full text-gray-300";
     this.innerHTML = `
-      <div class="resilver-news__content flex items-center rounded-lg overflow-hidden" style="transition: opacity 0.6s ease; max-width: 60%">
-        <img class="resilver-news__image hidden flex-shrink-0 object-cover rounded-l-lg" style="width: 40cqmin; height: 40cqmin" />
-        <div class="flex flex-col justify-center px-[2cqmin] flex-1 min-w-0 pl-3 gap-1">
-          <div class="resilver-news__headline font-light leading-snug" style="font-size: 2.5cqw"></div>
-          <div class="resilver-news__source opacity-40" style="font-size: 1.5cqw"></div>
+      <div class="resilver-news__content flex items-center rounded-lg overflow-hidden max-w-[50%] transition-opacity duration-[600ms] ease-in-out">
+        <img class="resilver-news__image hidden flex-shrink-0 object-cover rounded-l-lg w-[40cqmin] h-[40cqmin]" />
+        <div class="flex flex-col justify-center px-[3cqmin] flex-1 min-w-0">
+          <div class="resilver-news__headline text-[7.5cqmin] font-light leading-snug"></div>
+          <div class="resilver-news__source text-[4.5cqmin] accent opacity-70 mt-2"></div>
         </div>
       </div>
     `;
@@ -68,12 +68,12 @@ class ResilverNews extends HTMLElement {
     this._headlineEl.textContent = item.title;
     this._sourceEl.textContent = item.source || "";
 
+    this._imageEl.classList.add("hidden");
+    this._imageEl.removeAttribute("src");
+
     if (item.image) {
+      this._imageEl.onload = () => this._imageEl.classList.remove("hidden");
       this._imageEl.src = item.image;
-      this._imageEl.classList.remove("hidden");
-    } else {
-      this._imageEl.classList.add("hidden");
-      this._imageEl.removeAttribute("src");
     }
 
     this._contentEl.style.opacity = "1";

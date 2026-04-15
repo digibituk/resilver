@@ -12,9 +12,14 @@ import (
 
 type Config struct {
 	Server  ServerConfig            `json:"server"`
+	Theme   ThemeConfig             `json:"theme"`
 	Layout  LayoutConfig            `json:"layout"`
 	Modules map[string]ModuleConfig `json:"modules"`
 	Update  UpdateConfig            `json:"update"`
+}
+
+type ThemeConfig struct {
+	AccentColor string `json:"accentColor,omitempty"`
 }
 
 type UpdateConfig struct {

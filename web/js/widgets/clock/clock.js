@@ -6,13 +6,16 @@ class ResilverClock extends HTMLElement {
     this._showDate = cfg.showDate !== false;
     this._timezone = cfg.timezone || undefined;
 
-    this.className = "flex flex-col justify-center items-center w-full h-full font-mono text-gray-300 text-center";
+    this.className = "flex flex-col justify-center items-center w-full h-full text-gray-300 text-center";
     this.innerHTML = `
-      <div class="resilver-clock__time font-light tracking-wider" style="font-size: 14cqmin"></div>
-      ${this._showDate ? '<div class="resilver-clock__date opacity-50 mt-1 font-sans" style="font-size: 3cqmin"></div>' : ""}
+      <div class="resilver-clock__time text-[14cqmin] tabular-nums font-light tracking-wider">
+        <span class="resilver-clock__hm"></span>${this._showSeconds ? '<span class="resilver-clock__sec text-[0.45em] opacity-40"></span>' : ""}
+      </div>
+      ${this._showDate ? '<div class="resilver-clock__date text-[4.5cqmin] accent opacity-70 mt-1"></div>' : ""}
     `;
 
-    this._timeEl = this.querySelector(".resilver-clock__time");
+    this._hmEl = this.querySelector(".resilver-clock__hm");
+    this._secEl = this.querySelector(".resilver-clock__sec");
     this._dateEl = this.querySelector(".resilver-clock__date");
 
     this._update();
@@ -25,31 +28,30 @@ class ResilverClock extends HTMLElement {
 
   _update() {
     const now = new Date();
-    const timeOpts = {
-      hour: "2-digit",
-      minute: "2-digit",
-      hour12: this._format === "12h",
-    };
-    if (this._showSeconds) {
-      timeOpts.second = "2-digit";
-    }
-    if (this._timezone) {
-      timeOpts.timeZone = this._timezone;
-    }
+    const localeOpts = { timeZone: this._timezone };
+    const h12 = this._format === "12h";
 
-    this._timeEl.textContent = now.toLocaleTimeString(undefined, timeOpts);
+    const hm = now.toLocaleTimeString(undefined, { ...localeOpts, hour: "2-digit", minute: "2-digit", hour12: h12 });
+
+    this._hmEl.textContent = hm;
+
+    if (this._secEl) {
+      const s = now.toLocaleTimeString(undefined, { ...localeOpts, second: "2-digit", hour12: false }).slice(-2);
+      this._secEl.style.opacity = "0.15";
+      this._secEl.textContent = s;
+      requestAnimationFrame(() => {
+        this._secEl.style.opacity = "";
+      });
+    }
 
     if (this._dateEl) {
-      const dateOpts = {
+      this._dateEl.textContent = now.toLocaleDateString(undefined, {
+        ...localeOpts,
         weekday: "long",
         year: "numeric",
         month: "long",
         day: "numeric",
-      };
-      if (this._timezone) {
-        dateOpts.timeZone = this._timezone;
-      }
-      this._dateEl.textContent = now.toLocaleDateString(undefined, dateOpts);
+      });
     }
   }
 }

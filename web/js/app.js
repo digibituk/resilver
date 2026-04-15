@@ -2,6 +2,10 @@
   const resp = await fetch("/api/config");
   const config = await resp.json();
 
+  if (config.theme && config.theme.accentColor) {
+    document.documentElement.style.setProperty("--accent", config.theme.accentColor);
+  }
+
   const grid = document.getElementById("grid");
   const { direction, widgets } = config.layout;
   const count = widgets.length;

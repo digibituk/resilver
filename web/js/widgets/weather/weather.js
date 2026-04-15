@@ -5,13 +5,15 @@ class ResilverWeather extends HTMLElement {
     this._location = cfg.location || "";
     this._refreshInterval = (cfg.refreshIntervalSeconds || 1800) * 1000;
 
-    this.className = "flex flex-col justify-center items-center w-full h-full text-gray-300 text-center";
+    this.className =
+      "flex flex-col justify-center items-center w-full h-full text-gray-300 text-center";
     this.innerHTML = `
-      ${this._location ? `<div class="resilver-weather__location opacity-50 mb-1" style="font-size: 1.5cqmin">${this._location}</div>` : ""}
-      <div class="resilver-weather__icon" style="font-size: 10cqmin"></div>
-      <div class="resilver-weather__temp font-light mt-1" style="font-size: 7cqmin"></div>
-      <div class="resilver-weather__desc opacity-60 mt-0.5" style="font-size: 2.5cqmin"></div>
-      <div class="resilver-weather__details opacity-40 mt-1" style="font-size: 2cqmin"></div>
+      <div class="flex items-center gap-[2.5cqmin]">
+        <div class="resilver-weather__icon text-[10cqmin] animate-breathe"></div>
+        <div class="resilver-weather__temp text-[10cqmin] font-light"></div>
+      </div>
+      <div class="resilver-weather__desc text-[3cqmin] opacity-50"></div>
+      <div class="resilver-weather__details text-[4.5cqmin] accent opacity-70 mt-1"></div>
     `;
 
     this._iconEl = this.querySelector(".resilver-weather__icon");
@@ -34,7 +36,7 @@ class ResilverWeather extends HTMLElement {
       const data = await resp.json();
       this._render(data);
     } catch (err) {
-      this._iconEl.textContent = "⚠️";
+      this._iconEl.textContent = "";
       this._tempEl.textContent = "--";
       this._descEl.textContent = "Unable to load weather";
       this._detailsEl.textContent = "";
@@ -42,13 +44,15 @@ class ResilverWeather extends HTMLElement {
   }
 
   _render(data) {
-    const unit = this._units === "fahrenheit" ? "°F" : "°C";
+    const sym = this._units === "fahrenheit" ? "F" : "C";
 
-    this._iconEl.textContent = data.icon;
-    this._tempEl.textContent = `${Math.round(data.temperature)}${unit}`;
+    this._iconEl.innerHTML = `<i class="wi wi-${data.icon}"></i>`;
+    this._tempEl.innerHTML = `${Math.round(data.temperature)}°<span class="text-[0.75em] opacity-40">${sym}</span>`;
     this._descEl.textContent = data.description;
 
-    this._detailsEl.textContent = `Feels ${Math.round(data.apparentTemperature)}${unit}`;
+    const parts = [`Feels like ${Math.round(data.apparentTemperature)}°${sym}`];
+    if (this._location) parts.push(this._location);
+    this._detailsEl.textContent = parts.join(" · ");
   }
 }
 

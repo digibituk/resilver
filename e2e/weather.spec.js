@@ -22,9 +22,8 @@ test.describe("weather widget", () => {
   test("displays weather icon", async ({ page }) => {
     const icon = page.locator(".resilver-weather__icon");
     await expect(icon).toBeVisible();
-    await expect(icon).not.toHaveText("⚠️", { timeout: 5000 });
-    const text = await icon.textContent();
-    expect(text.length).toBeGreaterThan(0);
+    const iconEl = icon.locator("i.wi");
+    await expect(iconEl).toBeVisible({ timeout: 5000 });
   });
 
   test("displays weather description", async ({ page }) => {
@@ -42,13 +41,14 @@ test.describe("weather widget", () => {
     await expect(details).toBeVisible();
     await expect(details).not.toHaveText("", { timeout: 5000 });
     const text = await details.textContent();
-    expect(text).toContain("Feels");
+    expect(text).toContain("Feels like");
   });
 
   test("displays location name", async ({ page }) => {
-    const location = page.locator(".resilver-weather__location");
-    await expect(location).toBeVisible();
-    await expect(location).toHaveText("Grays");
+    const details = page.locator(".resilver-weather__details");
+    await expect(details).not.toHaveText("", { timeout: 5000 });
+    const text = await details.textContent();
+    expect(text).toContain("Grays");
   });
 
   test("is placed in the second grid cell", async ({ page }) => {

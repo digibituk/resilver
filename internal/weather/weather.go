@@ -17,6 +17,7 @@ type WeatherData struct {
 	WindSpeed    float64 `json:"windSpeed"`
 	Description  string  `json:"description"`
 	Icon         string  `json:"icon"`
+	IsDay        bool    `json:"isDay"`
 }
 
 type openMeteoResponse struct {
@@ -26,6 +27,7 @@ type openMeteoResponse struct {
 		ApparentTemp float64 `json:"apparent_temperature"`
 		WeatherCode  int     `json:"weather_code"`
 		WindSpeed    float64 `json:"wind_speed_10m"`
+		IsDay        int     `json:"is_day"`
 	} `json:"current"`
 }
 
@@ -50,7 +52,7 @@ func (c *Client) Fetch(lat, lon float64, units string) (WeatherData, error) {
 	}
 
 	url := fmt.Sprintf(
-		"%s/v1/forecast?latitude=%f&longitude=%f&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m&temperature_unit=%s&wind_speed_unit=%s",
+		"%s/v1/forecast?latitude=%f&longitude=%f&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m,is_day&temperature_unit=%s&wind_speed_unit=%s",
 		c.baseURL, lat, lon, tempUnit, windUnit,
 	)
 
@@ -74,7 +76,8 @@ func (c *Client) Fetch(lat, lon float64, units string) (WeatherData, error) {
 		return WeatherData{}, fmt.Errorf("failed to parse weather response: %w", err)
 	}
 
-	desc, icon := describeWeatherCode(raw.Current.WeatherCode)
+	isDay := raw.Current.IsDay == 1
+	desc, icon := describeWeatherCode(raw.Current.WeatherCode, isDay)
 
 	return WeatherData{
 		Temperature:  raw.Current.Temperature,
@@ -84,6 +87,7 @@ func (c *Client) Fetch(lat, lon float64, units string) (WeatherData, error) {
 		WindSpeed:    raw.Current.WindSpeed,
 		Description:  desc,
 		Icon:         icon,
+		IsDay:        isDay,
 	}, nil
 }
 
@@ -124,47 +128,50 @@ func (c *CachedClient) Fetch(lat, lon float64, units string) (WeatherData, error
 	return data, nil
 }
 
-func describeWeatherCode(code int) (string, string) {
-	switch code {
-	case 0:
-		return "Clear sky", "☀️"
-	case 1:
-		return "Mainly clear", "🌤️"
-	case 2:
-		return "Partly cloudy", "⛅"
-	case 3:
-		return "Overcast", "☁️"
-	case 45, 48:
-		return "Foggy", "🌫️"
-	case 51, 53, 55:
-		return "Drizzle", "🌦️"
-	case 56, 57:
-		return "Freezing drizzle", "🌧️"
-	case 61:
-		return "Light rain", "🌧️"
-	case 63:
-		return "Moderate rain", "🌧️"
-	case 65:
-		return "Heavy rain", "🌧️"
-	case 66, 67:
-		return "Freezing rain", "🌧️"
-	case 71:
-		return "Light snow", "🌨️"
-	case 73:
-		return "Moderate snow", "🌨️"
-	case 75:
-		return "Heavy snow", "❄️"
-	case 77:
-		return "Snow grains", "🌨️"
-	case 80, 81, 82:
-		return "Rain showers", "🌧️"
-	case 85, 86:
-		return "Snow showers", "🌨️"
-	case 95:
-		return "Thunderstorm", "⛈️"
-	case 96, 99:
-		return "Thunderstorm with hail", "⛈️"
-	default:
-		return "Unknown", "❓"
+func describeWeatherCode(code int, isDay bool) (string, string) {
+	type entry struct {
+		desc string
+		day  string
+		night string
 	}
+
+	table := map[int]entry{
+		0:  {"Clear sky", "day-sunny", "night-clear"},
+		1:  {"Mainly clear", "day-cloudy", "night-alt-cloudy"},
+		2:  {"Partly cloudy", "day-cloudy", "night-alt-cloudy"},
+		3:  {"Overcast", "day-sunny-overcast", "night-alt-partly-cloudy"},
+		45: {"Foggy", "day-fog", "night-fog"},
+		48: {"Foggy", "day-fog", "night-fog"},
+		51: {"Drizzle", "day-sprinkle", "night-sprinkle"},
+		53: {"Drizzle", "day-showers", "night-showers"},
+		55: {"Drizzle", "day-showers", "night-showers"},
+		56: {"Freezing drizzle", "snowflake-cold", "snowflake-cold"},
+		57: {"Freezing drizzle", "snowflake-cold", "snowflake-cold"},
+		61: {"Light rain", "day-sprinkle", "night-sprinkle"},
+		63: {"Moderate rain", "day-showers", "night-showers"},
+		65: {"Heavy rain", "day-thunderstorm", "night-thunderstorm"},
+		66: {"Freezing rain", "day-rain-mix", "night-rain-mix"},
+		67: {"Freezing rain", "day-snow-thunderstorm", "night-snow-thunderstorm"},
+		71: {"Light snow", "day-snow-wind", "night-snow-wind"},
+		73: {"Moderate snow", "day-snow-wind", "night-snow-wind"},
+		75: {"Heavy snow", "day-snow-thunderstorm", "night-snow-thunderstorm"},
+		77: {"Snow grains", "day-sleet", "night-sleet"},
+		80: {"Rain showers", "day-sprinkle", "night-sprinkle"},
+		81: {"Rain showers", "day-showers", "night-showers"},
+		82: {"Rain showers", "day-thunderstorm", "night-thunderstorm"},
+		85: {"Snow showers", "day-rain-mix", "night-rain-mix"},
+		86: {"Snow showers", "day-rain-mix", "night-rain-mix"},
+		95: {"Thunderstorm", "day-thunderstorm", "night-thunderstorm"},
+		96: {"Thunderstorm with hail", "day-sleet", "night-sleet"},
+		99: {"Thunderstorm with hail", "day-sleet-storm", "night-sleet-storm"},
+	}
+
+	e, ok := table[code]
+	if !ok {
+		return "Unknown", "cloud"
+	}
+	if isDay {
+		return e.desc, e.day
+	}
+	return e.desc, e.night
 }
