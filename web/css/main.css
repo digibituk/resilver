@@ -1,26 +1,28 @@
 @font-face {
-  font-family: 'Inter';
+  font-family: "Inter";
   font-style: normal;
   font-weight: 100 900;
   font-display: swap;
-  src: url('../font/Inter-VariableFont_opsz,wght.ttf') format('truetype');
+  src: url("../font/Inter-VariableFont_opsz,wght.ttf") format("truetype");
 }
 
 @font-face {
-  font-family: 'weathericons';
+  font-family: "weathericons";
   font-style: normal;
   font-weight: normal;
   font-display: swap;
-  src: url('../font/weathericons-regular-webfont.woff2') format('woff2');
+  src: url("../font/weathericons-regular-webfont.woff2") format("woff2");
 }
 
 :root {
   --accent: inherit;
 }
 
+/* Weather Icons */
+
 .wi {
   display: inline-block;
-  font-family: 'weathericons';
+  font-family: "weathericons";
   font-weight: normal;
   font-style: normal;
   line-height: 1;
@@ -28,34 +30,118 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
-.wi-day-sunny:before { content: "\f00d"; }
-.wi-night-clear:before { content: "\f02e"; }
-.wi-day-cloudy:before { content: "\f002"; }
-.wi-night-alt-cloudy:before { content: "\f086"; }
-.wi-day-sunny-overcast:before { content: "\f00c"; }
-.wi-night-alt-partly-cloudy:before { content: "\f081"; }
-.wi-day-fog:before { content: "\f003"; }
-.wi-night-fog:before { content: "\f04a"; }
-.wi-day-sprinkle:before { content: "\f00b"; }
-.wi-night-sprinkle:before { content: "\f039"; }
-.wi-day-showers:before { content: "\f009"; }
-.wi-night-showers:before { content: "\f037"; }
-.wi-day-thunderstorm:before { content: "\f010"; }
-.wi-night-thunderstorm:before { content: "\f03b"; }
-.wi-snowflake-cold:before { content: "\f076"; }
-.wi-day-rain-mix:before { content: "\f006"; }
-.wi-night-rain-mix:before { content: "\f034"; }
-.wi-day-snow-thunderstorm:before { content: "\f06b"; }
-.wi-night-snow-thunderstorm:before { content: "\f06c"; }
-.wi-day-snow-wind:before { content: "\f065"; }
-.wi-night-snow-wind:before { content: "\f066"; }
-.wi-day-sleet:before { content: "\f0b2"; }
-.wi-night-sleet:before { content: "\f0b3"; }
-.wi-day-sleet-storm:before { content: "\f068"; }
-.wi-night-sleet-storm:before { content: "\f069"; }
-.wi-cloud:before { content: "\f041"; }
+.wi-day-sunny:before {
+  content: "\f00d";
+}
+.wi-night-clear:before {
+  content: "\f02e";
+}
+.wi-day-cloudy:before {
+  content: "\f002";
+}
+.wi-night-alt-cloudy:before {
+  content: "\f086";
+}
+.wi-day-sunny-overcast:before {
+  content: "\f00c";
+}
+.wi-night-alt-partly-cloudy:before {
+  content: "\f081";
+}
+.wi-day-fog:before {
+  content: "\f003";
+}
+.wi-night-fog:before {
+  content: "\f04a";
+}
+.wi-day-sprinkle:before {
+  content: "\f00b";
+}
+.wi-night-sprinkle:before {
+  content: "\f039";
+}
+.wi-day-showers:before {
+  content: "\f009";
+}
+.wi-night-showers:before {
+  content: "\f037";
+}
+.wi-day-thunderstorm:before {
+  content: "\f010";
+}
+.wi-night-thunderstorm:before {
+  content: "\f03b";
+}
+.wi-snowflake-cold:before {
+  content: "\f076";
+}
+.wi-day-rain-mix:before {
+  content: "\f006";
+}
+.wi-night-rain-mix:before {
+  content: "\f034";
+}
+.wi-day-snow-thunderstorm:before {
+  content: "\f06b";
+}
+.wi-night-snow-thunderstorm:before {
+  content: "\f06c";
+}
+.wi-day-snow-wind:before {
+  content: "\f065";
+}
+.wi-night-snow-wind:before {
+  content: "\f066";
+}
+.wi-day-sleet:before {
+  content: "\f0b2";
+}
+.wi-night-sleet:before {
+  content: "\f0b3";
+}
+.wi-day-sleet-storm:before {
+  content: "\f068";
+}
+.wi-night-sleet-storm:before {
+  content: "\f069";
+}
+.wi-cloud:before {
+  content: "\f041";
+}
+
+/* Animations */
+
+@keyframes breathe {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.12);
+  }
+}
+
+/* Layout */
 
 .grid-cell {
   @apply grid w-full h-full;
   container-type: size;
+}
+
+/* Accent color (no Tailwind equivalent for custom properties with fallback) */
+
+.accent {
+  color: var(--accent, inherit);
+}
+
+/* Weather icon animation (references local keyframe) */
+
+.animate-breathe {
+  animation: breathe 3s ease-in-out infinite;
+}
+
+/* Seconds tick transition */
+
+.resilver-clock__sec {
+  transition: opacity 0.4s ease-out;
 }
