@@ -6,10 +6,10 @@ class ResilverClock extends HTMLElement {
     this._showDate = cfg.showDate !== false;
     this._timezone = cfg.timezone || undefined;
 
-    this.className = "flex flex-col justify-center items-center w-full h-full font-mono text-gray-300 text-center";
+    this.className = "flex flex-col justify-center items-center w-full h-full text-gray-300 text-center";
     this.innerHTML = `
-      <div class="resilver-clock__time font-light tracking-wider" style="font-size: 14cqmin"></div>
-      ${this._showDate ? '<div class="resilver-clock__date opacity-50 mt-1 font-sans" style="font-size: 3cqmin"></div>' : ""}
+      <div class="resilver-clock__time font-light tracking-wider" style="font-size: 14cqmin; color: var(--accent, inherit)"></div>
+      ${this._showDate ? '<div class="resilver-clock__date opacity-50 mt-1" style="font-size: 4cqmin; font-weight: 300; letter-spacing: 0.05em"></div>' : ""}
     `;
 
     this._timeEl = this.querySelector(".resilver-clock__time");

@@ -17,7 +17,8 @@ func fakeOpenMeteoServer(t *testing.T) *httptest.Server {
 				"relative_humidity_2m": 72,
 				"apparent_temperature": 13.1,
 				"weather_code": 3,
-				"wind_speed_10m": 12.5
+				"wind_speed_10m": 12.5,
+				"is_day": 1
 			}
 		}`
 		w.Header().Set("Content-Type", "application/json")
@@ -87,24 +88,26 @@ func TestFetchReturnsErrorOnInvalidJSON(t *testing.T) {
 func TestWeatherCodeMapping(t *testing.T) {
 	tests := []struct {
 		code        int
+		isDay       bool
 		description string
 		icon        string
 	}{
-		{0, "Clear sky", "☀️"},
-		{1, "Mainly clear", "🌤️"},
-		{45, "Foggy", "🌫️"},
-		{61, "Light rain", "🌧️"},
-		{95, "Thunderstorm", "⛈️"},
-		{999, "Unknown", "❓"},
+		{0, true, "Clear sky", "day-sunny"},
+		{0, false, "Clear sky", "night-clear"},
+		{1, true, "Mainly clear", "day-cloudy"},
+		{45, true, "Foggy", "day-fog"},
+		{61, false, "Light rain", "night-sprinkle"},
+		{95, true, "Thunderstorm", "day-thunderstorm"},
+		{999, true, "Unknown", "cloud"},
 	}
 
 	for _, tc := range tests {
-		desc, icon := describeWeatherCode(tc.code)
+		desc, icon := describeWeatherCode(tc.code, tc.isDay)
 		if desc != tc.description {
-			t.Errorf("describeWeatherCode(%d) description = %q, want %q", tc.code, desc, tc.description)
+			t.Errorf("describeWeatherCode(%d, %v) description = %q, want %q", tc.code, tc.isDay, desc, tc.description)
 		}
 		if icon != tc.icon {
-			t.Errorf("describeWeatherCode(%d) icon = %q, want %q", tc.code, icon, tc.icon)
+			t.Errorf("describeWeatherCode(%d, %v) icon = %q, want %q", tc.code, tc.isDay, icon, tc.icon)
 		}
 	}
 }
@@ -113,7 +116,7 @@ func TestCachedClientReturnsCachedData(t *testing.T) {
 	callCount := 0
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		callCount++
-		resp := `{"current":{"temperature_2m":15.3,"relative_humidity_2m":72,"apparent_temperature":13.1,"weather_code":3,"wind_speed_10m":12.5}}`
+		resp := `{"current":{"temperature_2m":15.3,"relative_humidity_2m":72,"apparent_temperature":13.1,"weather_code":3,"wind_speed_10m":12.5,"is_day":1}}`
 		w.Header().Set("Content-Type", "application/json")
 		w.Write([]byte(resp))
 	}))
@@ -149,7 +152,7 @@ func TestWeatherDataJSON(t *testing.T) {
 		WeatherCode:  3,
 		WindSpeed:    12.5,
 		Description:  "Overcast",
-		Icon:         "☁️",
+		Icon:         "day-sunny-overcast",
 	}
 
 	b, err := json.Marshal(data)

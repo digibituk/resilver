@@ -22,9 +22,8 @@ test.describe("weather widget", () => {
   test("displays weather icon", async ({ page }) => {
     const icon = page.locator(".resilver-weather__icon");
     await expect(icon).toBeVisible();
-    await expect(icon).not.toHaveText("⚠️", { timeout: 5000 });
-    const text = await icon.textContent();
-    expect(text.length).toBeGreaterThan(0);
+    const iconEl = icon.locator("i.wi");
+    await expect(iconEl).toBeVisible({ timeout: 5000 });
   });
 
   test("displays weather description", async ({ page }) => {

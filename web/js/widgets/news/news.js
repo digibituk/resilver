@@ -13,7 +13,7 @@ class ResilverNews extends HTMLElement {
         <img class="resilver-news__image hidden flex-shrink-0 object-cover rounded-l-lg" style="width: 40cqmin; height: 40cqmin" />
         <div class="flex flex-col justify-center px-[2cqmin] flex-1 min-w-0 pl-3 gap-1">
           <div class="resilver-news__headline font-light leading-snug" style="font-size: 2.5cqw"></div>
-          <div class="resilver-news__source opacity-40" style="font-size: 1.5cqw"></div>
+          <div class="resilver-news__source opacity-60" style="font-size: 1.5cqw; color: var(--accent, inherit)"></div>
         </div>
       </div>
     `;

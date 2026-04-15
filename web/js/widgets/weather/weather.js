@@ -9,7 +9,7 @@ class ResilverWeather extends HTMLElement {
     this.innerHTML = `
       ${this._location ? `<div class="resilver-weather__location opacity-50 mb-1" style="font-size: 1.5cqmin">${this._location}</div>` : ""}
       <div class="resilver-weather__icon" style="font-size: 10cqmin"></div>
-      <div class="resilver-weather__temp font-light mt-1" style="font-size: 7cqmin"></div>
+      <div class="resilver-weather__temp font-light mt-1" style="font-size: 7cqmin; color: var(--accent, inherit)"></div>
       <div class="resilver-weather__desc opacity-60 mt-0.5" style="font-size: 2.5cqmin"></div>
       <div class="resilver-weather__details opacity-40 mt-1" style="font-size: 2cqmin"></div>
     `;
@@ -34,7 +34,7 @@ class ResilverWeather extends HTMLElement {
       const data = await resp.json();
       this._render(data);
     } catch (err) {
-      this._iconEl.textContent = "⚠️";
+      this._iconEl.textContent = "";
       this._tempEl.textContent = "--";
       this._descEl.textContent = "Unable to load weather";
       this._detailsEl.textContent = "";
@@ -44,7 +44,7 @@ class ResilverWeather extends HTMLElement {
   _render(data) {
     const unit = this._units === "fahrenheit" ? "°F" : "°C";
 
-    this._iconEl.textContent = data.icon;
+    this._iconEl.innerHTML = `<i class="wi wi-${data.icon}"></i>`;
     this._tempEl.textContent = `${Math.round(data.temperature)}${unit}`;
     this._descEl.textContent = data.description;
 
