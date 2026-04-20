@@ -2,7 +2,9 @@
 
 Smart mirror dashboard. One binary, no dependencies, no headaches.
 
-## Why do we need another smart mirror dashboard?
+![Resilver preview](docs/preview.gif)
+
+## Do we need another smart mirror dashboard?
 
 The most popular open source smart mirror project currently is [MagicMirror²](https://github.com/MagicMirrorOrg/MagicMirror). It's a fantastic project with a large community and a rich ecosystem of modules. However, it has some drawbacks. The main one being its dependency on Node.js, which can be a pain to maintain. As long-term support for older versions ends and new versions require dependencies that only exist on updated Raspberry Pi OS distros. It also depends on a large number of npm packages, which need to be updated regularly to avoid security vulnerabilities. This, in my experience, is a lot of maintenance overhead for dashboard that rarely needs changing once configured.
 
