@@ -68,15 +68,28 @@ class ResilverNews extends HTMLElement {
     this._headlineEl.textContent = item.title;
     this._sourceEl.textContent = item.source || "";
 
-    this._imageEl.classList.add("hidden");
-    this._imageEl.removeAttribute("src");
+    const reveal = () => {
+      this._contentEl.style.opacity = "1";
+    };
 
     if (item.image) {
-      this._imageEl.onload = () => this._imageEl.classList.remove("hidden");
-      this._imageEl.src = item.image;
+      this._imageEl.classList.remove("hidden");
+      const img = new Image();
+      img.onload = () => {
+        this._imageEl.src = item.image;
+        reveal();
+      };
+      img.onerror = () => {
+        this._imageEl.classList.add("hidden");
+        this._imageEl.removeAttribute("src");
+        reveal();
+      };
+      img.src = item.image;
+    } else {
+      this._imageEl.classList.add("hidden");
+      this._imageEl.removeAttribute("src");
+      reveal();
     }
-
-    this._contentEl.style.opacity = "1";
   }
 }
 

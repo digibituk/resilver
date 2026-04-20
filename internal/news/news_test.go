@@ -56,6 +56,17 @@ const testRSSHtmlEntities = `<?xml version="1.0" encoding="UTF-8"?>
   </channel>
 </rss>`
 
+const testRSSHtmlTags = `<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0">
+  <channel>
+    <title>Sky News</title>
+    <item>
+      <title>&lt;a href='https://news.sky.com/story/123'&gt;'I did not mislead Commons', says PM&lt;/a&gt;</title>
+      <link>https://news.sky.com/story/123</link>
+    </item>
+  </channel>
+</rss>`
+
 func fakeRSSServer(t *testing.T, body string) *httptest.Server {
 	t.Helper()
 	return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -221,6 +232,25 @@ func TestFetchDecodesHtmlEntities(t *testing.T) {
 	}
 	if items[0].Source != "Feed & Source" {
 		t.Errorf("items[0].Source = %q, want Feed & Source", items[0].Source)
+	}
+}
+
+func TestFetchStripsHtmlTags(t *testing.T) {
+	srv := fakeRSSServer(t, testRSSHtmlTags)
+	defer srv.Close()
+
+	client := NewClient()
+	items, err := client.Fetch([]string{srv.URL}, 5)
+	if err != nil {
+		t.Fatalf("Fetch() error: %v", err)
+	}
+
+	if len(items) != 1 {
+		t.Fatalf("got %d items, want 1", len(items))
+	}
+	want := "'I did not mislead Commons', says PM"
+	if items[0].Title != want {
+		t.Errorf("items[0].Title = %q, want %q", items[0].Title, want)
 	}
 }
 

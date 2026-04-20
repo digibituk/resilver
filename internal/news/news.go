@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"html"
 	"io"
+	"regexp"
 	"log"
 	"net/http"
 	"slices"
@@ -82,6 +83,12 @@ func (c *Client) Fetch(feedURLs []string, maxItems int) ([]NewsItem, error) {
 	return merged, nil
 }
 
+var htmlTagRe = regexp.MustCompile(`<[^>]*>`)
+
+func stripTags(s string) string {
+	return strings.TrimSpace(htmlTagRe.ReplaceAllString(s, ""))
+}
+
 func (c *Client) fetchOne(feedURL string) ([]NewsItem, error) {
 	resp, err := c.httpClient.Get(feedURL)
 	if err != nil {
@@ -106,9 +113,9 @@ func (c *Client) fetchOne(feedURL string) ([]NewsItem, error) {
 	items := make([]NewsItem, len(feed.Channel.Items))
 	for i, raw := range feed.Channel.Items {
 		items[i] = NewsItem{
-			Title:  html.UnescapeString(raw.Title),
+			Title:  stripTags(html.UnescapeString(raw.Title)),
 			Link:   raw.Link,
-			Source: html.UnescapeString(feed.Channel.Title),
+			Source: stripTags(html.UnescapeString(feed.Channel.Title)),
 			Image:  extractImage(raw),
 		}
 	}
