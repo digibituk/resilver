@@ -2,31 +2,32 @@
 
 Smart mirror dashboard. One binary, no dependencies, no headaches.
 
-## Why Resilver?
+## Why do we need another smart mirror dashboard?
 
-Most smart mirror dashboards require Node.js, dozens of dependencies, and a lengthy setup process. Resilver takes a different approach. It's a compact single ~7 MB statically compiled binary that you download and run. No package manager, no dependencies, and sensible defaults out of the box. It's designed to be simple, reliable, and secure without the constant maintenance concerns.
+The most popular open source smart mirror project currently is [MagicMirror²](https://github.com/MagicMirrorOrg/MagicMirror). It's a fantastic project with a large community and a rich ecosystem of modules. However, it has some drawbacks. The main one being its dependency on Node.js, which can be a pain to maintain. As long-term support for older versions ends and new versions require dependencies that only exist on updated Raspberry Pi OS distros. It also depends on a large number of npm packages, which need to be updated regularly to avoid security vulnerabilities. This, in my experience, is a lot of maintenance overhead for dashboard that rarely needs changing once configured.
+
+**Resilver** tries to take a different approach. It's a compact single ~7 MB statically compiled binary that you download and run. No package manager, no dependencies, and sensible defaults out of the box. It's designed to be minimalistic, reliable, and self sufficient without the constant need of maintenance.
 
 ### How it compares
 
-|               | Resilver              | MagicMirror²              |
-| ------------- | --------------------- | ------------------------- |
-| Install       | Download one binary   | Node.js + npm install     |
-| Dependencies  | 0                     | 400+                      |
-| Binary size   | ~7 MB                 | ~200 MB installed         |
-| Configuration | Single JSON file      | JS config + per-module JS |
-| Updates       | Built-in self-update  | Manual git pull + npm     |
-| Privacy       | Fully local, no cloud | Fully local, no cloud     |
-| Language      | Go                    | Node.js                   |
+|               | Resilver             | MagicMirror²              |
+| ------------- | -------------------- | ------------------------- |
+| Install       | Download one binary  | Node.js + npm install     |
+| Dependencies  | 0                    | 400+                      |
+| Binary size   | ~7 MB                | ~200 MB installed         |
+| Configuration | Single JSON file     | JS config + per-module JS |
+| Updates       | Built-in self-update | Manual git pull + npm     |
+| Language      | Go                   | Node.js                   |
 
-MagicMirror² is a great project that pioneered the space. Resilver is for anyone who wants a similar result with less maintenance and fewer moving parts.
+MagicMirror² is a awesome solution for those who want lots of module options and a great community, as long as they don't mind the maintenance overhead or potential breaking changes. Resilver is for those who crave a minimal setup with little to no maintenance, and are happy with a smaller selection of built-in widgets. If would like to contribute to expanding our widget selection, see our [contributing](#contributing) guidelines.
 
 ## What you get
 
-- **Zero dependencies** — nothing to install, nothing to break on update
-- **Privacy-first** — no accounts, no cloud, no telemetry. Everything runs locally
+- **Zero dependencies** — nothing to install, just download and run
 - **Self-updating** — automatic updates with checksum verification
-- **Container-ready** — ships with a Containerfile and compose.yaml for Podman
-- **Fully configurable** — one JSON file controls everything
+- **Modular design** — add new custom widgets to fit your needs
+- **Dynamic layout** — responsive grid with auto-spanning
+- **Fully configurable** — single source of truth for all settings, layout and widgets
 
 ## Current widgets
 
@@ -36,7 +37,7 @@ MagicMirror² is a great project that pioneered the space. Resilver is for anyon
 | Weather | Current conditions via Open-Meteo. No API key needed     |
 | News    | Multi-source RSS aggregator with images and auto-cycling |
 
-More widgets are planned. Want to build your own? See [Contributing](#contributing).
+More widgets comming soon but if you can't wait, and want to build your own? See our [contributing](#contributing) guidelines.
 
 ## Requirements
 
@@ -58,13 +59,13 @@ Open `http://localhost:8080` in a browser.
 
 ### 2. Set up kiosk mode
 
-For a true smart mirror experience, launch Chromium in kiosk mode so the dashboard fills the entire screen with no browser UI:
+For a true smart mirror experience, download and launch Chromium in kiosk mode.
 
 ```bash
 chromium-browser --kiosk --noerrdialogs --disable-infobars http://localhost:8080
 ```
 
-On a Raspberry Pi, add this to your autostart so it launches on boot. Pair it with a two-way mirror and a monitor, and you have a fully self-contained smart mirror.
+On a Raspberry Pi, you can add this to your autostart so it launches on boot up.
 
 ### Alternative: Podman
 
@@ -91,13 +92,14 @@ Resilver works out of the box with sensible defaults. To customise, copy `config
 | Section   | What it controls                                                                                                                                                          |
 | --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `server`  | Port the dashboard is served on                                                                                                                                           |
+| `theme`   | Theme settings, currently only supports accent color.                                                                                                                     |
 | `layout`  | Configure grid layout order, direction (`row`/`column`), and max widget count. Widgets render in array order; last widget in an odd count auto-spans the remaining space. |
 | `modules` | Per-widget settings. Each widget can be configured individually.                                                                                                          |
 | `update`  | Self-update configuration. On by default.                                                                                                                                 |
 
 ## Contributing
 
-Resilver is open source and contributions are welcome!
+Resilver is open source and any contributions are welcome!
 
 ## License
 
